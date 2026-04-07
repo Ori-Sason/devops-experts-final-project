@@ -1,0 +1,10 @@
+Dockerfile
+src/db/*.db
+
+.git/
+.gitignore
+.venv/
+**/__pycache__/
+*.pyc
+
+.env
