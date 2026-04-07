@@ -1,6 +1,6 @@
 from functools import wraps
 from flask import Flask, render_template, request
-from db.visit_count import increment_visit
+from db.visit_count import increment_visit, get_visits
 
 
 app = Flask(__name__)
@@ -21,9 +21,9 @@ def main():
 
 
 @app.route('/visits')
+@count_visits
 def visits():
-    # FIX - get visits from DB
-    return render_template('visits.html', visits=[{'path': '/', 'count': 2}, {'path': '/visits', 'count': 3}])
+    return render_template('visits.html', visits=get_visits())
 
 
 if __name__ == '__main__':
