@@ -19,3 +19,37 @@ body {
     min-height: 100vh;
     color: #ffffff;
 }
+
+/* BACK BUTTON */
+.back-button {
+    margin-bottom: 1.5rem;
+    padding: 0.5rem 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--gray);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
+}
+
+.back-button .arrow {
+    font-size: 1.1rem;
+    transition: transform 0.2s ease;
+}
+
+.back-button:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.back-button:hover .arrow {
+    transform: translateX(-4px);
+}
