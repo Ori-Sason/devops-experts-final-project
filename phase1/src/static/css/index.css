@@ -42,7 +42,7 @@ h1 {
 h2 {
     font-size: 1.1rem;
     font-weight: 500;
-    color: #8b949e;
+    color: var(--gray);
     text-transform: uppercase;
     letter-spacing: 3px;
     margin: 0;
