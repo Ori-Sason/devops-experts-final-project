@@ -17,7 +17,7 @@ def create_database_and_tables(db_filename):
     return conn
 
 def get_db() -> sqlite3.Connection:
-    db_filename = './db/main.db'
+    db_filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'main.db')
     if not os.path.exists(db_filename):
         conn = create_database_and_tables(db_filename)
     else:
