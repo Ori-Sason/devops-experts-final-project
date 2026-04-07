@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from db.visit_count import increment_visit, get_visits
 
 
@@ -24,6 +24,12 @@ def main():
 @count_visits
 def visits():
     return render_template('visits.html', visits=get_visits())
+
+
+@app.errorhandler(404)
+def page_not_found(e):
+    request.path = '/'
+    return redirect(url_for('main'))
 
 
 if __name__ == '__main__':
