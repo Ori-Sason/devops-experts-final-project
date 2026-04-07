@@ -3,7 +3,7 @@ src/db/*.db
 
 .git/
 .gitignore
-.venv/
+venv/
 **/__pycache__/
 *.pyc
 
