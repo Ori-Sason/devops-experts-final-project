@@ -3,5 +3,7 @@ services:
     build: .
     ports:
       - 80:5000
+    environment:
+      PORT: 5000
     volumes:
       - ./db/main.db:/app/db/main.db
