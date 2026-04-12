@@ -1,14 +1,12 @@
-# Phase 1
-
-The purpose of Phase 1 is to establish a solid foundation by applying Docker concepts to create a basic environment for containerized applications.
-
-We were requested to create a simple Python flask application, containerize it and use Docker volumes to manage persistent storage.
+# DevOps Experts - Final Project
+<u>Author</u>: Ori Sason  
+This is the final project for the DevOps Experts program. We update it regularly during the course to include the new technologies and layers we study in each phase.
 
 ## Features
 * Web app with 2 web pages: */* and */visits*.
 * */visits* page shows a count of logging into the different pages of the app. Counts are stored in an SQLite DB file.
-* SQLite DB is stored on a Docker bind mounts (on the host machine).
-* Dockerized: Easily containerized for streamlined deployment.
+* SQLite DB is stored on a Docker named volume.
+* Dockerized: easily containerized for streamlined deployment.
 
 ## Project structure
 ```
@@ -43,3 +41,6 @@ Once finished, run the following to shut down the app
 ```bash
 docker compose down
 ```
+
+The DB will be stored for next runs.
+Run `docker compose down -v` if you want to completely remove the application, including the DB.

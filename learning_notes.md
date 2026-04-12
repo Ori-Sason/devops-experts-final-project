@@ -1,0 +1,53 @@
+This section documents the architectural choices and technical insights I gained during development. These notes serve to clarify my decision-making process and provide a roadmap of the concepts I've mastered during this phase.
+
+## Phase 1 - Docker
+
+End phase commit: # FIX - add tag
+
+The purpose of Phase 1 is to establish a solid foundation by applying Docker concepts to create a basic environment for containerized applications.
+
+We were requested to create a simple Python flask application, containerize it and use Docker volumes to manage persistent storage.
+
+### Notes
+* DB - SQLite vs PostgreSQL / MySQL
+  We were asked to `Use Docker volumes to manage persistent storage if necessary`. To make things interesting, I've decided to make a page visit count which is stored on a DB.  
+  At first I thought that a simple solution can be using SQLite. But thinking of the next phases, where we will use Kubernetes and deploy to AWS, SQLite won't suite (since multiple Pods, in multiple Nodes reach it).  
+  To understand both worlds, I've decided to use SQLite on this phase, and then move the DB to a different container in the next phase, where we will use Kubernetes (and consider using AWS RDS if we will deploy to AWS).  
+  Two more key points:
+  * In this phase I've used a Docker named volume. In the course we've learned about bind mounts, but since I've used `USER` instruction, it required to have the same user on both Docker and host machine. To avoid that, I preferred using named volume.
+  * I wondered how PostgreSQL / MySQL will handle concurrency on Kubernetes. One idea I had is that I can have multiple DB Pods, but all of them reference to a single volume. After reading, seems like that I can have only a single DB StatefulSet and multiple Python Pods directing to it.  
+  To scale up, having multiple instances of the DB requires more complex architecture, which can be reached by using AWS RDS.
+* Dockerfile `USER`  
+  While I've read and saw YouTube videos about this instruction, I've never used it. So, I though it will be a good chance to try it here.  
+  Before applying to use it, I've read the following articles:
+  * [Understanding the Dockerfile USER and Its Role in Docker Containers](https://cyberpanel.net/blog/docker-file-user-command) by Cyberpanel.
+  * [Top 21 Dockerfile best practices for container security](https://www.sysdig.com/learn-cloud-native/dockerfile-best-practices) by sysdig.
+
+  An easy way of implementing the `USER` instruction is described in a [Youtube Video](https://youtu.be/8vXoMqWgbQQ?t=855&si=d6mW0IzEhfEMLdBe)
+  ```Dockerfile
+  RUN add group -r tom && useradd -g tom tom
+  RUN chown -R tom:tom /app
+  USER tom
+  CMD node index.js
+  ```
+  Also, we can set the owner in the `COPY` command
+  ```Dockerfile
+  COPY --chown tom:tom . .
+  ```
+  However, according to the sysdig article above, point 1.4, we should avoid giving ownership to the non-root user. One of the reasons that it's not secure is because the owner of the files is able to change the permissions.  
+  Therefore, I've used what seems to be OpenShift / Enterprise Linux approach. Here are some notes from Gemini:
+  * **Group 0 (root) Strategy**: Adding your user to the `root` group (`-G root`) and setting `chgrp -R 0` is the gold standard for OpenShift. It ensures that even if a platform runs your container with a random, high-numbered UID (a common security feature), that random user will still belong to GID 0 and have the permissions you defined.
+  * **The X (Uppercase) Bit**: Using `g+rwX` is a smart touch. In Linux, the uppercase X means "apply execute permissions only if it's a directory or already has execute bits." This allows your user to enter the folder without accidentally making every data file inside an executable script.
+  * **Immutable Code**: Keeping `/app` at `550` while the DB is `g+rwX` perfectly maintains that "read-only code, writeable data" balance.
+* `.dockerignore` vs `.gitignore` references  
+  In `.dockerignore`, a pattern like `__pycache__` only matches in the root folder. To match it recursively (like `.gitignore` does by default), we should use `**/__pycache__`.
+* `pip install --no-cache-dir` flag  
+  Docker stores a copy of the `.whl` or source files in the layer, nearly doubling the space required for your dependencies. Using `--no-cache-dir` keeps your production image slim.  
+  Also, it helps with a security concern. From [Datadog Docs](https://docs.datadoghq.com/security/code_security/static_analysis/static_analysis_rules/docker-best-practices/pip-no-cache/): It is important to avoid using a cache when installing packages because it ensures that the latest version of a package is always used. This reduces the risk of security vulnerabilities and bugs, and ensures that your application has the most up-to-date and secure dependencies.
+* Moving files using git  
+`git mv source_folder/* destination_folder/`  
+  I had to move files from one folder to another, which caused them to change status to `Untracked`. This results the commit looks like I've deleted the old files and creating new ones instead.  
+  By using Git `mv` command, the status of the files changes to `rename`, which better describes the situation.
+
+## Phase 2 - Kubernetes
+
