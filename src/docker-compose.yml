@@ -5,5 +5,7 @@ services:
       - 80:5000
     environment:
       PORT: 5000
-    # volumes:
-    #   - experts-web-vol:/app/db/main.db
+    volumes:
+      - experts-web-vol:/app/db/dbs
+volumes:
+  experts-web-vol: {}
