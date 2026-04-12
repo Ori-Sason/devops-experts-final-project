@@ -4,9 +4,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-RUN chmod -R 550 /app && \
-    chgrp -R 0 /app/db/dbs && \
-    chmod -R g+rwX /app/db/dbs
+RUN chmod -R 550 /app
 USER appuser
 EXPOSE 5000
 HEALTHCHECK --timeout=3s \
