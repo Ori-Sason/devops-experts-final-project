@@ -1,8 +1,12 @@
 FROM python:3.14.3-alpine3.23
+RUN adduser -D -G root appuser
 WORKDIR /app
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
+RUN chmod -R 550 /app && \
+    chgrp -R 0 /app/db/dbs && \
+    chmod -R g+rwX /app/db/dbs
+USER appuser
 EXPOSE 5000
-CMD [ "ls", "-R" ]
-# CMD [ "python", "app.py" ]
+CMD [ "python", "app.py" ]
