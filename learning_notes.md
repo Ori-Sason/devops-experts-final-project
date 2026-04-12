@@ -48,6 +48,10 @@ We were requested to create a simple Python flask application, containerize it a
 `git mv source_folder/* destination_folder/`  
   I had to move files from one folder to another, which caused them to change status to `Untracked`. This results the commit looks like I've deleted the old files and creating new ones instead.  
   By using Git `mv` command, the status of the files changes to `rename`, which better describes the situation.
+* `HEALTHCHECK`  
+  In the next stage we will be required to use Kubernetes Readiness and Liveness Probes. Docker also suggest a liveness test, which just indicate whether the app running on the container is healthy. Unlike Kubernetes, it doesn't restart the container, but just mentioned the health status on `docker ps` output.  
+  I've read the [official documentation](https://docs.docker.com/reference/dockerfile/#healthcheck) about this instruction.  
+  Since `curl` is not installed on Alpine images, and I didn't want to add an extra layer, I've used `wget` command.
 
 ## Phase 2 - Kubernetes
 

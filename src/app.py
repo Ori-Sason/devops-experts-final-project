@@ -27,6 +27,11 @@ def visits():
     return render_template('visits.html', visits=get_visits())
 
 
+@app.route('/health')
+def health_check():
+    return {"status": "healthy"}, 200
+
+
 @app.errorhandler(404)
 def page_not_found(e):
     request.path = '/'
