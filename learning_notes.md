@@ -2,7 +2,7 @@ This section documents the architectural choices and technical insights I gained
 
 ## Phase 1 - Docker
 
-End phase commit: # FIX - add tag
+End phase commit: [7cbd55e](https://github.com/Ori-Sason/devops-experts-final-project/tree/7cbd55e752bfc8164f77ee508d1bf350186e32e0)
 
 The purpose of Phase 1 is to establish a solid foundation by applying Docker concepts to create a basic environment for containerized applications.
 

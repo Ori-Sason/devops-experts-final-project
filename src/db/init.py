@@ -1,26 +1,53 @@
-import os
-import sqlite3
+import psycopg2
+from psycopg2 import sql
+from psycopg2.extras import RealDictCursor
 
-def create_database_and_tables(db_filename):
-    conn = sqlite3.connect(db_filename)
+conn = psycopg2.connect(
+    host="db",
+    database="postgres",
+    user="postgres",
+    password="password"
+)
 
-    ddl = """
-        CREATE TABLE visits (
-            id INTEGER NOT NULL PRIMARY KEY,
-            path TEXT NOT NULL UNIQUE,
-            count INTEGER NOT NULL
+def get_connection():
+    return conn
+
+def get_cursor():
+    return conn.cursor(cursor_factory=RealDictCursor)
+
+
+def create_database_and_tables():
+    if not _is_table_exists('visits'):
+        ddl = """
+            CREATE TABLE visits (
+                id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+                path TEXT NOT NULL UNIQUE,
+                count INTEGER NOT NULL
+            );
+        """
+
+        cursor = get_cursor()
+        cursor.execute(ddl)
+        conn.commit()
+        cursor.close()
+
+
+def _is_table_exists(table_name):
+    cursor = get_cursor()
+
+    query = sql.SQL("""
+        SELECT EXISTS(
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_name={table_name}
         );
-    """
+        """).format(table_name=sql.Literal(table_name))
 
-    conn.executescript(ddl)
-
-    return conn
-
-def get_db() -> sqlite3.Connection:
-    db_filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'dbs', 'main.db')
-    if not os.path.exists(db_filename):
-        conn = create_database_and_tables(db_filename)
-    else:
-        conn = sqlite3.connect(db_filename)
+    cursor.execute(query)
+    res = cursor.fetchone()
+    cursor.close()
     
-    return conn
+    return res['exists'] is True
+
+
+create_database_and_tables()

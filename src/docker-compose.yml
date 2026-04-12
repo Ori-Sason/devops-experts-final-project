@@ -1,11 +1,28 @@
 services:
+  db:
+    image: postgres:18.3-alpine3.23
+    container_name: db
+    environment:
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres-vol:/var/lib/postgresql
+    healthcheck:
+      # requires because by default, depends_on only waits for the database container to start,
+      # not for the database service inside it to be ready to accept connections
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   web:
+    depends_on:
+      db:
+        condition: service_healthy
     build: .
+    container_name: web-app
     ports:
       - 80:5000
     environment:
       PORT: 5000
-    volumes:
-      - experts-web-vol:/app/db/dbs
+
 volumes:
-  experts-web-vol: {}
+  postgres-vol: {}
