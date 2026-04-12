@@ -4,8 +4,8 @@ This is the final project for the DevOps Experts program. We update it regularly
 
 ## Features
 * Web app with 2 web pages: */* and */visits*.
-* */visits* page shows a count of logging into the different pages of the app. Counts are stored in an SQLite DB file.
-* SQLite DB is stored on a Docker named volume.
+* */visits* page shows a count of logging into the different pages of the app.
+* For DB, I use PostgreSQL container, which stores on a Docker named volume.
 * Dockerized: easily containerized for streamlined deployment.
 
 ## Project structure
@@ -15,7 +15,7 @@ src                     # Web app project
 ├───docker-compose.yml
 ├───Dockerfile  
 ├───requirements.txt    # Python dependencies
-├───db                  # SQLite DB related scripts
+├───db                  # DB related scripts
 ├───static
 │   ├───css
 │   └───images  
@@ -44,3 +44,6 @@ docker compose down
 
 The DB will be stored for next runs.
 Run `docker compose down -v` if you want to completely remove the application, including the DB.
+
+* To keep things simple, I didn't ignore `postgres.env` and `web-app.env` files.
+  On a real project, `.env` files shouldn't be uploaded to GitHub.

@@ -1,12 +1,13 @@
+import os
 import psycopg2
 from psycopg2 import sql
 from psycopg2.extras import RealDictCursor
 
 conn = psycopg2.connect(
     host="db",
-    database="postgres",
-    user="postgres",
-    password="password"
+    database=os.environ['POSTGRES_DB'],
+    user=os.environ['POSTGRES_USER'],
+    password=os.environ['POSTGRES_PASSWORD']
 )
 
 def get_connection():

@@ -39,4 +39,4 @@ def page_not_found(e):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=os.environ.get('WEB_APP_PORT', 5000))
