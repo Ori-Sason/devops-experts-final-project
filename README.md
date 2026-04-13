@@ -20,7 +20,7 @@ This is the final project for the DevOps Experts program. We update it regularly
 ```
 kubernetes              # Kubernetes definition files
 MDs                     # Notes
-src                     # Web app project
+web-app                 # Web app project
 ├───app.py              # Application entry point
 ├───docker-compose.yml
 ├───Dockerfile  
@@ -48,7 +48,7 @@ src                     # Web app project
 ### Running the application locally using Docker Compose
 
 ```bash
-cd src
+cd web-app
 docker compose up
 ```
 
