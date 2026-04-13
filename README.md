@@ -11,6 +11,11 @@ This is the final project for the DevOps Experts program. We update it regularly
 * Support HPA - Horizontal Pod Autoscaling (check out [HPA.md](./MDs/HPA.md))
 * Traffic cronjob - creates synthetic traffic to the application (check out [traffic-cronjob](./MDs/traffic-cronjob.md))
 
+# Web App
+<div align="center">
+  <img src="./MDs/images/web-app.png" alt="Web app UI" width="600"/>
+</div>
+
 ## Project structure
 ```
 kubernetes              # Kubernetes definition files
@@ -30,7 +35,9 @@ src                     # Web app project
 * Mentioned only relevant files
 
 ## Kubernetes architecture
-![Architecture design](./MDs/images/kubernetes-architecture.png)
+<div align="center">
+  <img src="./MDs/images/kubernetes-architecture.png" alt="Architecture design" width="450"/>
+</div>
 
 ## Installation
 
