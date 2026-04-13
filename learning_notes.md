@@ -4,7 +4,7 @@ This section documents the architectural choices and technical insights I gained
 
 End phase commit: [7cbd55e](https://github.com/Ori-Sason/devops-experts-final-project/tree/7cbd55e752bfc8164f77ee508d1bf350186e32e0)
 
-The purpose of Phase 1 is to establish a solid foundation by applying Docker concepts to create a basic environment for containerized applications.
+The purpose of Phase 1 is to establish a solid foundation by applying **Docker** concepts to create a basic environment for containerized applications.
 
 We were requested to create a simple Python flask application, containerize it and use Docker volumes to manage persistent storage.
 
@@ -55,3 +55,12 @@ We were requested to create a simple Python flask application, containerize it a
 
 ## Phase 2 - Kubernetes
 
+End phase commit: []() # FIX - ADD COMMIT AND TAG
+
+The objective of Phase 2 is to build upon our containerization knowledge by orchestrating our application with **Kubernetes** to ensure it is scalable and highly available.
+
+we were requested to set up a cluster using Minikube to deploy your application, manage it using Deployments and Services, and implement advanced features like Horizontal Pod Autoscaling, ConfigMaps, Secrets and CronJobs.
+
+### Notes
+* Pod dependency order  
+  My web app depends on the DB, but Kubernetes starts all pods simultaneously. Unlike Docker Compose’s `depends_on`, Kubernetes requires an init container in the web-app pod to "gate" the startup. It polls the DB Service (DNS/Port) and only exits once the DB is ready, allowing the main app container to finally start.
