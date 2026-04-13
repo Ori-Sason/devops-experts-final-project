@@ -21,8 +21,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: web-app-configmap
-            - configMapRef:
-                name: web-app-db-configmap
+            - secretRef:
+                name: web-app-db-secret
           ports:
             - containerPort: 5000
               name: http-web-svc

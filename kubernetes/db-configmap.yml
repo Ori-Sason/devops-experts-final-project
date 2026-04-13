@@ -1,8 +1,9 @@
 apiVersion: v1
-kind: ConfigMap
+kind: Secret
 metadata:
-  name: web-app-db-configmap
+  name: web-app-db-secret
+type: Opaque
 data:
-  POSTGRES_PASSWORD: c0ml3xP@ssw0rd
-  POSTGRES_USER: db-admin-user
-  POSTGRES_DB: devops-final-project
+  POSTGRES_PASSWORD: YzBtbDN4UEBzc3cwcmQ=
+  POSTGRES_USER: ZGItYWRtaW4tdXNlcg==
+  POSTGRES_DB: ZGV2b3BzLWZpbmFsLXByb2plY3Q=
