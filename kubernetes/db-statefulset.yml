@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: web-app-db
+  labels:
+    app: web-app-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-app-db
+  template:
+    metadata:
+      labels:
+        app: web-app-db
+    spec:
+      containers:
+        - name: web-app-db
+          image: postgres:18.3-alpine3.23
+          envFrom:
+            - configMapRef:
+                name: web-app-db-configmap
+          ports:
+            - containerPort: 5432
+              name: db-svc

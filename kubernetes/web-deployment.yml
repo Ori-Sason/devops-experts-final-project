@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app
+  labels:
+    app: web-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+    spec:
+      containers:
+        - name: web-app
+          image: orisason1/devops-experts-s4e3:v2
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: web-app-configmap
+            - configMapRef:
+                name: web-app-db-configmap
+          ports:
+            - containerPort: 5000
+              name: http-web-svc

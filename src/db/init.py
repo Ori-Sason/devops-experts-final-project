@@ -4,7 +4,7 @@ from psycopg2 import sql
 from psycopg2.extras import RealDictCursor
 
 conn = psycopg2.connect(
-    host="db",
+    host=os.environ['DB_HOST'],
     database=os.environ['POSTGRES_DB'],
     user=os.environ['POSTGRES_USER'],
     password=os.environ['POSTGRES_PASSWORD']

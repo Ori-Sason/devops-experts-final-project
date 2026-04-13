@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-app-db-configmap
+data:
+  POSTGRES_PASSWORD: c0ml3xP@ssw0rd
+  POSTGRES_USER: db-admin-user
+  POSTGRES_DB: devops-final-project
