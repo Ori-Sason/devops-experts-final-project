@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: web-app-db-pv
+spec:
+  volumeMode: Filesystem
+  storageClassName: standard
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /data/web-app-db-postgres/
+    type: DirectoryOrCreate

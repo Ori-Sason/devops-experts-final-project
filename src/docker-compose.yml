@@ -5,7 +5,7 @@ services:
     env_file: 
       - './env/postgres.env'
     volumes:
-      - postgres-vol:/var/lib/postgresql
+      - postgres-vol:/var/lib/postgresql/18/docker
     healthcheck:
       # 1. Healthcheck is required because by default, depends_on only waits for the database container to start,
       # not for the database service inside it to be ready to accept connections

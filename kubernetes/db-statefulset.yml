@@ -23,3 +23,18 @@ spec:
           ports:
             - containerPort: 5432
               name: db-svc
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/18/docker
+              name: storage-volume
+      volumes:
+        - name: storage-volume
+          persistentVolumeClaim:
+            claimName: web-app-db-pvc
+      initContainers:
+        - name: busybox
+          image: busybox:latest
+          command: ["sh", "-c", "rm -rf /var/lib/postgresql/18/docker/lost+found"]
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/18/docker
+              name: storage-volume
+
