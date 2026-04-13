@@ -23,6 +23,22 @@ spec:
           ports:
             - containerPort: 5432
               name: db-svc
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -d "$POSTGRES_DB" -U "$POSTGRES_USER"
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -d "$POSTGRES_DB" -U "$POSTGRES_USER"
+            initialDelaySeconds: 15
+            periodSeconds: 20
           volumeMounts:
             - mountPath: /var/lib/postgresql/18/docker
               name: storage-volume
