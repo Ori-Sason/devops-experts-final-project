@@ -9,6 +9,7 @@ This is the final project for the DevOps Experts program. We update it regularly
 * Dockerized: easily containerized for streamlined deployment.
 * Kubernetes cluster deployed locally on Minikube.
 * Support HPA - Horizontal Pod Autoscaling (check out [HPA.md](./MDs/HPA.md))
+* Traffic cronjob - creates synthetic traffic to the application (check out [traffic-cronjob](./MDs/traffic-cronjob.md))
 
 ## Project structure
 ```

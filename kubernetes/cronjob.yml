@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: traffic-generator
+spec:
+  schedule: "*/2 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: curl-worker
+            image: busybox:1.37.0
+            command:
+            - /bin/sh
+            - -c
+            - |
+              #!/bin/sh
+
+              # Function to get a random number between 0 and 9
+              get_random() {
+                  echo "$(( $RANDOM % 10 ))"
+              }
+
+              endpoints="/ /visits"
+
+              for route in $endpoints; do
+                  count=$(get_random)
+                  echo "Sending $count requests to $route..."
+                  
+                  for i in $(seq 1 $count); do
+                      wget -qO- "http://web-svc${route}" > /dev/null
+                  done
+              done
+
+              echo "Traffic generation complete."
+          restartPolicy: OnFailure
