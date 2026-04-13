@@ -12,12 +12,15 @@ This is the final project for the DevOps Experts program. We update it regularly
 
 ## Project structure
 ```
+kubernetes              # Kubernetes definition files
+MDs                     # Notes
 src                     # Web app project
 ├───app.py              # Application entry point
 ├───docker-compose.yml
 ├───Dockerfile  
 ├───requirements.txt    # Python dependencies
 ├───db                  # DB related scripts
+├───env
 ├───static
 │   ├───css
 │   └───images  
@@ -25,12 +28,16 @@ src                     # Web app project
 ```
 * Mentioned only relevant files
 
+## Kubernetes architecture
+![Architecture design](./MDs/images/kubernetes-architecture.png)
+
 ## Installation
 
 ### Requirements
 1. Docker Desktop ([Installation](https://docs.docker.com/desktop/) - look for `Install Docker Desktop`).
+2. Minikube (local Kubernetes for learning purposes) ([Installation](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fwindows%2Fx86-64%2Fstable%2Fchocolatey)).
 
-### Running the application locally
+### Running the application locally using Docker Compose
 
 ```bash
 cd src
@@ -52,3 +59,21 @@ Run `docker compose down -v` if you want to completely remove the application, i
 
 ### Running the application on Kubernetes Minikube
 
+Make sure Minikube is up an running by running `minikube status`.
+If it's not, run `minikube start`.
+
+To run the application
+```bash
+kubectl apply -f ./kubernetes/
+```
+
+Next, we need Minikube to expose the web service to our host machine
+```bash
+minikube service web-svc
+```
+
+This will open a tab on your browser showing the web app.
+
+To shut down the application:
+1. Stop the process of `minikube service web-svc`.
+2. `kubectl delete -f ./kubernetes/`
