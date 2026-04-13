@@ -55,7 +55,7 @@ We were requested to create a simple Python flask application, containerize it a
 
 ## Phase 2 - Kubernetes
 
-End phase commit: []() # FIX - ADD COMMIT AND TAG
+End phase commit: [e8e6eb3](https://github.com/Ori-Sason/devops-experts-final-project/tree/e8e6eb3387c5cb9c6047a151762f8879489a6b5c)
 
 The objective of Phase 2 is to build upon our containerization knowledge by orchestrating our application with **Kubernetes** to ensure it is scalable and highly available.
 
