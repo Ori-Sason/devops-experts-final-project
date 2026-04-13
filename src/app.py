@@ -1,6 +1,7 @@
 import os
 from functools import wraps
-from flask import Flask, render_template, request, redirect, url_for
+import hashlib
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from db.visit_count import increment_visit, get_visits
 
 
@@ -30,6 +31,14 @@ def visits():
 @app.route('/health')
 def health_check():
     return {"status": "healthy"}, 200
+
+
+@app.route('/stress')
+def stress_cpu():
+    # This creates actual CPU heat by calculating 5,000 hashes per request
+    for _ in range(5000):
+        hashlib.sha256(os.urandom(1024)).hexdigest()
+    return jsonify(status="CPU Stressed")
 
 
 @app.errorhandler(404)

@@ -7,6 +7,8 @@ This is the final project for the DevOps Experts program. We update it regularly
 * */visits* page shows a count of logging into the different pages of the app.
 * For DB, I use PostgreSQL container, which stores on a Docker named volume.
 * Dockerized: easily containerized for streamlined deployment.
+* Kubernetes cluster deployed locally on Minikube.
+* Support HPA - Horizontal Pod Autoscaling (check out [HPA.md](./MDs/HPA.md))
 
 ## Project structure
 ```
@@ -47,3 +49,6 @@ Run `docker compose down -v` if you want to completely remove the application, i
 
 * To keep things simple, I didn't ignore `postgres.env` and `web-app.env` files.
   On a real project, `.env` files shouldn't be uploaded to GitHub.
+
+### Running the application on Kubernetes Minikube
+
