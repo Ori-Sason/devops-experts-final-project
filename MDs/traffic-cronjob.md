@@ -15,7 +15,7 @@ By using internal service discovery (`http://web-svc`), the traffic stays within
 ## How to Manually Trigger
 While the CronJob is scheduled to run every 2 minutes, you can manually trigger a "one-off" execution for testing purposes without waiting for the next schedule.
 
-### 1. Create a Job from the CronJob
+1. Create a Job from the CronJob
 Run the following command to create a manual Job based on the CronJob template:
 ```bash
 kubectl create job --from=cronjob/traffic-generator manual-traffic-run

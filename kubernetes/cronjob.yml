@@ -17,15 +17,14 @@ spec:
             - |
               #!/bin/sh
 
-              # Function to get a random number between 0 and 9
-              get_random() {
+              get_random_0_to_9() {
                   echo "$(( $RANDOM % 10 ))"
               }
 
               endpoints="/ /visits"
 
               for route in $endpoints; do
-                  count=$(get_random)
+                  count=$(get_random_0_to_9)
                   echo "Sending $count requests to $route..."
                   
                   for i in $(seq 1 $count); do

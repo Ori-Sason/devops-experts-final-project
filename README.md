@@ -1,6 +1,6 @@
 # DevOps Experts - Final Project
 <u>Author</u>: Ori Sason  
-This is the final project for the DevOps Experts program. We update it regularly during the course to include the new technologies and layers we study in each phase.
+This is the final project for the DevOps Experts program. I update it regularly during the course to include the new technologies and layers we study in each phase.
 
 I've noted my technical decisions and learning process in [learning-notes](./MDs/learning-notes.md).
 
