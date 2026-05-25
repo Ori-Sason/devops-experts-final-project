@@ -3,10 +3,18 @@ name = "devops-experts-final-project"
 version = "0.1.0"
 description = "Final project of DevOps Experts DevOps course | Feb 2026"
 readme = "README.md"
+authors = [
+    { name = "OriSason", email = "orisason1@gmail.com" }
+]
 requires-python = ">=3.14"
 dependencies = []
 
 [dependency-groups]
 dev = [
     "pre-commit>=4.6.0",
+]
+
+[tool.uv.workspace]
+members = [
+    "web-app",
 ]
