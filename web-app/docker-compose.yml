@@ -11,7 +11,7 @@ services:
       # not for the database service inside it to be ready to accept connections.
       # 2. Using $$ tells Docker Compose: "Don't try to fill this variable now; 
       # wait until the command runs inside the container's shell".
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 3
