@@ -2,16 +2,16 @@
 <u>Author</u>: Ori Sason  
 This is the final project for the DevOps Experts program. I update it regularly during the course to include the new technologies and layers we study in each phase.
 
-I've noted my technical decisions and learning process in [learning-notes](./MDs/learning-notes.md).
+I've noted my technical decisions and learning process in [learning-notes.md](./MDs/learning-notes.md).
 
 ## Features
 * Web app with 2 web pages: */* and */visits*.
 * */visits* page shows a count of logging into the different pages of the app.
-* For DB, I use PostgreSQL container, which stores on a Docker named volume.
+* For DB, I use PostgreSQL container, which stores on a Docker named volume (on local deployment) or on Kubernetes hostPath (on K8s deployment).
 * Dockerized: easily containerized for streamlined deployment.
 * Kubernetes cluster deployed locally on Minikube.
 * Support HPA - Horizontal Pod Autoscaling (check out [HPA.md](./MDs/HPA.md))
-* Traffic cronjob - creates synthetic traffic to the application (check out [traffic-cronjob](./MDs/traffic-cronjob.md))
+* Traffic cronjob - creates synthetic traffic to the application (check out [traffic-cronjob.md](./MDs/traffic-cronjob.md))
 
 # Web App
 <div align="center">
@@ -61,10 +61,10 @@ Once finished, run the following to shut down the app
 docker compose down
 ```
 
-The DB will be stored for next runs.
-Run `docker compose down -v` if you want to completely remove the application, including the DB.
+The DB will be stored for next runs on a named volume.
+Run `docker compose down -v` if you want to completely remove the application, including the DB volume (DB data will be lost).
 
-* To keep things simple, I didn't ignore `postgres.env` and `web-app.env` files.
+* To keep things simple, I didn't add `postgres.env` and `web-app.env` files to `.gitignore` (or ConfigMap / Secret on K8s).
   On a real project, `.env` files shouldn't be uploaded to GitHub.
 
 ### Running the application on Kubernetes Minikube

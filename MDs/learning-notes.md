@@ -6,12 +6,12 @@ End phase commit: [7cbd55e](https://github.com/Ori-Sason/devops-experts-final-pr
 
 The purpose of Phase 1 is to establish a solid foundation by applying **Docker** concepts to create a basic environment for containerized applications.
 
-We were requested to create a simple Python flask application, containerize it and use Docker volumes to manage persistent storage.
+We were requested to create a simple Python Flask application, containerize it and use Docker volumes to manage persistent storage.
 
 ### Notes
 * DB - SQLite vs PostgreSQL / MySQL  
   We were asked to `Use Docker volumes to manage persistent storage if necessary`. To make things interesting, I've decided to make a page showing visit count which is stored on a DB.  
-  At first I thought that a simple solution can be using SQLite. But thinking of the next phases, where we will use Kubernetes and deploy to AWS, SQLite won't suite (since multiple Pods, in multiple Nodes can't reach it).  
+  At first I thought that a simple solution can be using SQLite. But thinking of the next phases, where we will use Kubernetes and deploy to AWS, SQLite won't suite (since different Pods located on different Nodes can't reach the same SQLite DB).  
   To understand both worlds, I've decided to use SQLite on this phase, and then move the DB to a different container in the next phase, where we will use Kubernetes (and consider using AWS RDS if we will deploy to AWS).  
   Two more key points:
   * In this phase I've used a Docker named volume. In the course we've learned about bind mounts, but since I've used `USER` instruction, it required to have the same user on both Docker and host machine. To avoid that, and as a simple solution, I preferred using named volume.
@@ -38,7 +38,23 @@ We were requested to create a simple Python flask application, containerize it a
   Therefore, I've used what seems to be OpenShift / Enterprise Linux approach. Here are some notes from Gemini:
   * **Group 0 (root) Strategy**: Adding your user to the `root` group (`-G root`) and setting `chgrp -R 0` is the gold standard for OpenShift. It ensures that even if a platform runs your container with a random, high-numbered UID (a common security feature), that random user will still belong to GID 0 and have the permissions you defined.
   * **The X (Uppercase) Bit**: Using `g+rwX` is a smart touch. In Linux, the uppercase X means "apply execute permissions only if it's a directory or already has execute bits." This allows your user to enter the folder without accidentally making every data file inside an executable script.
-  * **Immutable Code**: Keeping `/app` at `550` while the DB is `g+rwX` perfectly maintains that "read-only code, writeable data" balance.
+  * **Immutable Code**: Keeping `/app` at `550` while the DB is `g+rwX` perfectly maintains that "read-only code, writeable data" balance.  
+
+  Therefore I've used the following approach:
+    ```Dockerfile
+    # Create a user without a password and add it to the root group 
+    # (Note: GID 0 is a system group and does not grant admin/root user privileges).
+    RUN adduser -D -G root appuser
+
+    ... # Install and copy files instructions
+
+    # 1. Secure the app directory: Read & Execute for user/group, completely blocked for others (550).
+    # 2. Explicitly set group ownership of the DB folder to GID 0 as a fail-safe for future code changes.
+    # 3. Grant Write permissions to the root group on the DB folder so SQLite can manage its journal files.
+    RUN chmod -R 550 /app && \
+    chgrp -R 0 /app/db/dbs && \
+    chmod -R g+rwX /app/db/dbs
+    ```
 * `.dockerignore` vs `.gitignore` references  
   In `.dockerignore`, a pattern like `__pycache__` only matches in the root folder. To match it recursively (like `.gitignore` does by default), we should use `**/__pycache__`.
 * `pip install --no-cache-dir` flag  
@@ -62,5 +78,17 @@ The objective of Phase 2 is to build upon our containerization knowledge by orch
 We were requested to set up a cluster using Minikube to deploy your application, manage it using Deployments and Services, and implement advanced features like Horizontal Pod Autoscaling, ConfigMaps, Secrets and CronJobs.
 
 ### Notes
+* I've removed part of the permissions command mentioned on Phase 1 since I don't use SQLite anymore (as planned on Phase 1, I've created a separated container running PostgreSQL).
 * Pod dependency order  
-  My web app depends on the DB, but Kubernetes starts all pods simultaneously. Unlike Docker Compose’s `depends_on`, Kubernetes requires an init container in the web-app Pod to "gate" the startup. It polls the DB Service (DNS/Port) and only exits once the DB is ready, allowing the main app container to finally start.
+  My web app depends on the DB, but Kubernetes starts all Pods simultaneously. Unlike Docker Compose’s `depends_on`, Kubernetes requires an init container in the web-app Pod to "gate" the startup. It polls the DB Service (DNS/Port) and only exits once the DB is ready, allowing the main app container to finally start.
+
+## Phase 3 - Helm Charts, Git and Jenkins
+
+End phase commit: ()[] #MISSING
+
+The objective of Phase 3 focuses on automating the deployment process and improving version control practices.  
+
+We are requested to create a **Helm Chart** for our Kubernetes application, set up a **Git** repository to manage our project workflows, and use **Jenkins** to implement a local CI/CD pipeline with build, test, and deploy stages.
+
+### Notes
+* 

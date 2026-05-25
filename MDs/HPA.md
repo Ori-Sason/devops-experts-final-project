@@ -19,7 +19,7 @@ Run the following command
 kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://web-svc/stress; done"
 ```
 This will create small-sized containers that will send a request to our web-app */stress* endpoint.
-Each time we send a request, the endpoint will loop for 5,000 times, creating a SHA-256 string out of random 1024 bytes. This process, triggered over and over, will stress the CPU of the node containing the pod.
+Each time we send a request, the endpoint will loop for 5,000 times, creating a SHA-256 string out of random 1024 bytes. This process, triggered over and over, will stress the CPU of the Node containing the Pod.
 
 After a while, on another terminal, run
 ```bash
@@ -28,4 +28,4 @@ kubectl get pods
 
 And notice that the number of web-app pods increased from 1, up to 5.
 
-Remember to stop stressing the CPU by stopping with terminal running `load-generator` container.
+Remember to stop stressing the CPU by stopping `load-generator` container from the terminal running it.
