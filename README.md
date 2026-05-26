@@ -50,21 +50,20 @@ web-app                 # Web app project
 ### Running the application locally using Docker Compose
 
 ```bash
-cd web-app
-docker compose up
+docker compose -f ./web-app/docker-compose.yml --project-directory . up
 ```
 
 Go to http://localhost/
 
 Once finished, run the following to shut down the app
 ```bash
-docker compose down
+docker compose -f ./web-app/docker-compose.yml --project-directory . down
 ```
 
 The DB will be stored for next runs on a named volume.
-Run `docker compose down -v` if you want to completely remove the application, including the DB volume (DB data will be lost).
+In case you want to completely remove the application, including the DB volume (DB data will be lost), add `-v` flag in the end of the command.
 
-* To keep things simple, I didn't add `postgres.env` and `web-app.env` files to `.gitignore` (or ConfigMap / Secret on K8s).
+* To keep things simple, I didn't add `.env` files to `.gitignore` (or ConfigMap / Secret on K8s).
   On a real project, `.env` files shouldn't be uploaded to GitHub.
 
 ### Running the application on Kubernetes Minikube

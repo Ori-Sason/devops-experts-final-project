@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: web-app
-          image: orisason1/devops-experts-s4e3:v3
+          image: orisason1/devops-experts-final-project:v4
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
