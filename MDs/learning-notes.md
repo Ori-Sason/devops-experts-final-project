@@ -92,4 +92,93 @@ The objective of Phase 3 focuses on automating the deployment process and improv
 We are requested to create a **Helm Chart** for our Kubernetes application, set up a **Git** repository to manage our project workflows, and use **Jenkins** to implement a local CI/CD pipeline with build, test, and deploy stages.
 
 ### Notes
-*
+* Git Hooks  
+  Since we're asked to use Git at this phase, I thought it can be a good chance to try using pre-commits hooks. I've heard about this feature, but never used or configured it on my own.  
+  I use [pre-commit](https://pre-commit.com/) framework for managing and maintaining pre-commit hooks. From that framework I use two built-in hooks: `end-of-file-fixer` to check that files end with empty line and `trailing-whitespace` which makes sure that there are no trailing whitespaces.  
+  In the next phase we will use AWS, so I use [Gitleaks](https://github.com/gitleaks/gitleaks) to detect secrets before committing them.
+
+  I want to use pre-commit hooks only locally. There is no need to install it as part of CI/CD pipeline or on deployed environment. Therefore, I will use Python uv package and project manager that will allow me to manage installations for dev-environment only easily.
+* Using python uv instead of pip  
+  This is also the first time I'm using uv (in my last startup we were using `pip`, virtual environment by `python -m venv` and `requirements.txt` files).  
+  I've learned the fundamentals of uv from a YouTube video: [Stop Using Pip - This New Tool is 100x Faster (uv Tutorial)](https://www.youtube.com/watch?v=6pttmsBSi8M) by Tech With Tim.
+
+  Few decisions and learning extras related to uv:  
+  * Up to this point, in Dockerfile I used `pip` and `requirements.txt` file. I had to decide whether to keep it or use uv when building the image.  
+    Staying with `pip` is the easy choice since `pip` approach is already implemented on Dockerfile.  
+    However, then I will have different package managing systems in the same small project. Also, uv is much faster installing, which can be beneficial in case of rebuilding the Docker image.  
+  * Another feature uv offers is creating `requirements.txt` file out of `uv.lock`, by running the following command:
+    ```bash
+    uv export --format requirements-txt --output-file requirements.txt
+    ```
+    Therefore, I could generate that text file automatically by using Git pre-commit/pre-push hooks or as part of the CI/CD pipeline. But that felt cumbersome.
+
+    ***I've decided to use uv on Dockerfile.***
+
+  * In my project, I have two layers of uv usage - on the root level I use `pre-commit` manager, while on `web-app/` I use the packages that were in `web-app/requirements.txt` (like Flask and psycopg2).  
+
+    Using Gemini I've become familiar with a feature uv offers, called workspace. Using this feature I can have 2 TOML files (uv configuration file. Like `package.json` in NodeJS NPM projects) - one in the root folder and one in `web-app/`.  
+    ```
+    . (root)
+    ├── pyproject.toml
+    ├── uv.lock
+    └── web-app/
+        └── pyproject.toml
+    ```
+
+    In the root folder TOML file we have a reference to the file on `web-app` folder.
+    ```toml
+    [tool.uv.workspace]
+    members = ["web-app"]
+    ```
+
+    When we run uv locally, there is only a single virtual environment folder, `.venv/`, which is located on the root folder.  
+    uv scopes the package execution context to the directory we execute `uv run`. In other words, when we run
+    ```bash
+    cd web-app
+    uv run app.py
+    ```
+    uv scopes only the dependencies in `web-app/pyproject.toml`.
+  * To make sure that the exact same dependencies installed locally will be installed on the Docker image, we need to copy `uv.lock` file to the Docker image.  
+    Therefore, we need to build the Docker image in the context of the root folder. Technically it means that we need to to run the build command from the root folder, so Docker will have access to `./uv.lock`.
+  * I've updated Dockerfile and used a build stage. On the build stage I've installed uv, copied `./web-app/pyproject.toml` and `./uv.lock` files to ensure strict version pinning, and compiled the virtual environment on `/app/.venv/` folder.  
+    In the final stage I've copied the content of `/app/.venv/` from the build stage, and updated the `PATH` environment variable to reference to the virtual environment folder.  
+    As a result, I'm using uv **only** in the build stage, so the final image is kept lean.
+  * Explanations about the build step  
+    Instead of installing uv, I copy uv binaries into the image
+    ([uv Docks](https://docs.astral.sh/uv/guides/integration/docker/#installing-uv))
+    ```Dockerfile
+    COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+    WORKDIR /app
+    COPY ./uv.lock .
+    ```
+    Since `uv.lock` content fits to a scenario of workspace with members, I have to replicate the files and folders structure in the image.  
+    Instead of copying the root folder `pyproject.toml` file, I create one during the build process, containing only a reference to the `web-app` folder.
+    ```Dockerfile
+    RUN echo -e '[tool.uv.workspace]\nmembers = ["web-app"]' > pyproject.toml
+    COPY ./web-app/pyproject.toml ./web-app/
+    RUN uv sync --frozen --no-dev --no-install-workspace --package web-app
+    ```
+    For more information about `uv sync` flags - [uv Docs](https://docs.astral.sh/uv/reference/cli/#uv-sync)
+    * `--frozen`: forbids updating `uv.lock` file. Ensuring the same dependencies versions as in dev environment.
+    * `--no-dev`: excludes dev-only dependencies.
+    * `--no-install-workspace`: installs only package dependencies (without root dependencies).
+    * `--package`: syncs for specific packages in the workspace.
+  * Since Dockerfile content is written now in the context of the root folder, it also influences `docker build` and Docker Compose commands
+    ```bash
+    docker build -f ./web-app/Dockerfile -t <image-tag> .
+    docker compose -f ./web-app/docker-compose.yml --project-directory . up
+    docker compose -f ./web-app/docker-compose.yml --project-directory . down [-v]
+    ```
+  * Explanation about build context  
+    Since we build from the root folder, this is the context Docker sees. Therefore, I had to update 3 things:
+    * Updated `Dockerfile` and `docker-compose.yml` content so it will be in the context of the root folder.
+    * Moved `.dockerignore` from `web-app` folder to the root folder.  
+    I could keep it in `web-app` folder and refer to it in the build command by using the `--dockerignore` flag. But then I had to update the content inside the file. Since I can have many Dockerfiles in a project (even though I have only one here), I've decided to have a main standard `.dockerignore` file for the whole project in the root directory.
+* Python `PATH` environment variable  
+  In Dockerfile I've chained the `PATH` variable
+  ```Dockerfile
+  ENV PATH="/app/.venv/bin:$PATH"
+  ```
+  The `PATH` variable isn't just a single folder, it is a colon-separated list of directories that the operating system searches from left to right whenever we run a command.  
+  A standard Linux container comes out of the box with a `PATH` that looks something like this: `/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin`.  
+  Now, when the container runs health check by using `wget`, it will first look for that package at `/app/.venv/bin`. Since it won't find it there, it will try the following folders, started from `/usr/local/bin` and on.
