@@ -1,9 +1,17 @@
+FROM python:3.14.3-alpine3.23 AS build
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+WORKDIR /app
+COPY ./uv.lock .
+RUN echo -e '[tool.uv.workspace]\nmembers = ["web-app"]' > pyproject.toml
+COPY ./web-app/pyproject.toml ./web-app/
+RUN uv sync --frozen --no-dev --no-install-workspace --package web-app
+
 FROM python:3.14.3-alpine3.23
 RUN adduser -D -G root appuser
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
+COPY --from=build /app/.venv /app/.venv
+ENV PATH="/app/.venv/bin:$PATH"
+COPY ./web-app/ .
 RUN chmod -R 550 /app
 USER appuser
 EXPOSE 5000
