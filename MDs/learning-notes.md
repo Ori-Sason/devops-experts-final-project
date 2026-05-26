@@ -42,7 +42,7 @@ We were requested to create a simple Python Flask application, containerize it a
 
   Therefore I've used the following approach:
     ```Dockerfile
-    # Create a user without a password and add it to the root group 
+    # Create a user without a password and add it to the root group
     # (Note: GID 0 is a system group and does not grant admin/root user privileges).
     RUN adduser -D -G root appuser
 
@@ -72,6 +72,7 @@ We were requested to create a simple Python Flask application, containerize it a
 ## Phase 2 - Kubernetes
 
 End phase commit: [e8e6eb3](https://github.com/Ori-Sason/devops-experts-final-project/tree/e8e6eb3387c5cb9c6047a151762f8879489a6b5c)
+* I've updated the image name of my web-app container from `orisason1/devops-experts-s4e3` to `orisason1/devops-experts-final-project`. In case you're cloning any of this phase commits, update the image name in `./kubernetes/web-deployment.yml`.
 
 The objective of Phase 2 is to build upon our containerization knowledge by orchestrating our application with **Kubernetes** to ensure it is scalable and highly available.
 
@@ -91,4 +92,4 @@ The objective of Phase 3 focuses on automating the deployment process and improv
 We are requested to create a **Helm Chart** for our Kubernetes application, set up a **Git** repository to manage our project workflows, and use **Jenkins** to implement a local CI/CD pipeline with build, test, and deploy stages.
 
 ### Notes
-* 
+*
