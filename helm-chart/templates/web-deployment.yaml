@@ -3,16 +3,18 @@ kind: Deployment
 metadata:
   name: {{ include "visit-counter.componentName" (list . "web-app") }}  # DONE2
   labels:
-    app: {{ .Values.webDeployment.name }}
+    {{- include "visit-counter.labels" . | nindent 4 }}
+    {{- include "visit-counter.selectorLabels" (list . "web-app") | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Values.webDeployment.name }}
+      {{- include "visit-counter.selectorLabels" (list . "web-app") | nindent 6 }}
   template:
     metadata:
       labels:
-        app: {{ .Values.webDeployment.name }}
+        {{- include "visit-counter.labels" . | nindent 8 }}
+        {{- include "visit-counter.selectorLabels" (list . "web-app") | nindent 8 }}
     spec:
       containers:
         - name: web-app
@@ -22,7 +24,7 @@ spec:
             - configMapRef:
                 name: {{ include "visit-counter.componentName" (list . "web-app-configmap") }}   # DONE2
             - secretRef:
-                name: {{ include "visit-counter.componentName" (list . "web-app-db-secret") }}   # DONE2
+                name: {{ include "visit-counter.componentName" (list . "web-db-secret") }}   # DONE2
           ports:
             - containerPort: 5000
               name: {{ .Values.webService.portName }}   # DONE
@@ -51,7 +53,7 @@ spec:
         - |
           echo "Waiting for database service..."
           # DONE-svc name + port
-          until nc -z {{ include "visit-counter.componentName" (list . "web-db-svc") }} {{ .Values.dbService.port }}; do
+          until nc -z {{ include "visit-counter.componentName" (list . "web-db-svc") }} {{ .Values.dbService.port }}; do   # FIX
             echo "DB not ready, sleeping 2s..."
             sleep 2
           done

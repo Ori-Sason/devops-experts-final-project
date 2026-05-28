@@ -1,28 +1,30 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "visit-counter.componentName" (list . "web-app-db") }}   # DONE2
+  name: {{ include "visit-counter.componentName" (list . "web-db") }}   # DONE2
   labels:
-    app: {{ .Values.webDeployment.name }}-db   # DONE
+    {{- include "visit-counter.labels" . | nindent 4 }}
+    {{- include "visit-counter.selectorLabels" (list . "web-db") | nindent 4 }}   # DONE
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Values.webDeployment.name }}-db   # DONE
+      {{- include "visit-counter.selectorLabels" (list . "web-db") | nindent 6 }}   # DONE
   template:
     metadata:
       labels:
-        app: {{ .Values.webDeployment.name }}-db   # DONE
+        {{- include "visit-counter.labels" . | nindent 8 }}
+        {{- include "visit-counter.selectorLabels" (list . "web-db") | nindent 8 }}   # DONE
     spec:
       containers:
-        - name: web-app-db
+        - name: web-db
           image: postgres:18.3-alpine3.23
           envFrom:
             - secretRef:
-                name: {{ include "visit-counter.componentName" (list . "web-app-db-secret") }}   # DONE2
+                name: {{ include "visit-counter.componentName" (list . "web-db-secret") }}   # DONE2
           ports:
-            - containerPort: {{ .Values.dbService.port }}   # DONE
-              name: {{ .Values.dbService.portName }}   # DONE
+            - containerPort: {{ .Values.dbService.port }}   # FIX
+              name: {{ .Values.dbService.portName }}   # FIX
           readinessProbe:
             exec:
               command:
@@ -45,7 +47,7 @@ spec:
       volumes:
         - name: storage-volume
           persistentVolumeClaim:
-            claimName: {{ include "visit-counter.componentName" (list . "web-app-db-pvc") }}   # DONE2
+            claimName: {{ include "visit-counter.componentName" (list . "web-db-pvc") }}   # DONE2
       initContainers:
         - name: busybox
           image: busybox:latest

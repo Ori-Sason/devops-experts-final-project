@@ -6,9 +6,9 @@ This Kubernetes CronJob automates the generation of synthetic traffic to the app
 The CronJob runs a lightweight `busybox` container every **2 minutes**. It executes a shell script that:
 1.  Defines targeted endpoints: `/` (Home) and `/visits`.
 2.  Generates a **random number** (0-9) for each endpoint individually.
-3.  Sends internal `GET` requests using `wget` to the `web-svc` service.
+3.  Sends internal `GET` requests using `wget` to the `web-app-svc` service.
 
-By using internal service discovery (`http://visit-counter-dev-web-svc`), the traffic stays within the cluster network, simulating real user interaction.
+By using internal service discovery (`http://visit-counter-dev-web-app-svc`), the traffic stays within the cluster network, simulating real user interaction.
 
 ---
 
@@ -33,4 +33,4 @@ While the CronJob is scheduled to run every 2 minutes, you can manually trigger 
     kubectl delete job visit-counter-manual-traffic-run
     ```
 
-Note: Ensure that the `visit-counter-dev-web-svc` service is running and healthy before triggering, as the script relies on internal cluster DNS resolution.
+Note: Ensure that the `visit-counter-dev-web-app-svc` service is running and healthy before triggering, as the script relies on internal cluster DNS resolution.

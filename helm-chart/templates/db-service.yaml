@@ -3,12 +3,13 @@ kind: Service
 metadata:
   name: {{ include "visit-counter.componentName" (list . "web-db-svc") }}   # DONE2
   labels:
-    app: {{ .Values.dbService.name }}   # DONE
+    {{- include "visit-counter.labels" . | nindent 4 }}
+    {{- include "visit-counter.selectorLabels" (list . "web-db-svc") | nindent 4 }}
 spec:
   type: ClusterIP
   selector:
-    app: {{ .Values.webDeployment.name }}-db   # DONE
+    {{- include "visit-counter.selectorLabels" (list . "web-db") | nindent 4 }}   # DONE
   ports:
     - protocol: TCP
-      port: {{ .Values.dbService.port }}
-      targetPort: {{ .Values.dbService.portName }}   # DONE
+      port: {{ .Values.dbService.port }}   # FIX
+      targetPort: {{ .Values.dbService.portName }}   # FIX

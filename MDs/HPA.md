@@ -16,7 +16,7 @@ You need the add-on because the **Metrics Server** acts as the "thermometer" tha
 ## To stress the web-app Pods
 Run the following command
 ```bash
-kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://visit-counter-dev-web-svc/stress; done"
+kubectl run -i --tty visit-counter-load-generator --rm --image=busybox:1.28 --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://visit-counter-dev-web-app-svc/stress; done"
 ```
 This will create small-sized containers that will send a request to our web-app */stress* endpoint.
 Each time we send a request, the endpoint will loop for 5,000 times, creating a SHA-256 string out of random 1024 bytes. This process, triggered over and over, will stress the CPU of the Node containing the Pod.

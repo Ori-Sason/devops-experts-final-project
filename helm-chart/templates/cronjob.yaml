@@ -28,7 +28,7 @@ spec:
                   echo "Sending $count requests to $route..."
 
                   for i in $(seq 1 $count); do
-                      wget -qO- "http://{{ include "visit-counter.componentName" (list . "web-svc") }}${route}" > /dev/null
+                      wget -qO- "http://{{ include "visit-counter.componentName" (list . "web-app-svc") }}${route}" > /dev/null
                   done
               done
 

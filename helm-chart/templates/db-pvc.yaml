@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "visit-counter.componentName" (list . "web-app-db-pvc") }}   # DONE2
+  name: {{ include "visit-counter.componentName" (list . "web-db-pvc") }}   # DONE2
 spec:
-  volumeName: {{ include "visit-counter.componentName" (list . "web-app-db-pv") }}   # DONE2
+  volumeName: {{ include "visit-counter.componentName" (list . "web-db-pv") }}   # DONE2
   storageClassName: standard
   accessModes:
     - ReadWriteOnce

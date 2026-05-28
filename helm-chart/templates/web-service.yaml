@@ -1,14 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "visit-counter.componentName" (list . "web-svc") }}   # DONE2
+  name: {{ include "visit-counter.componentName" (list . "web-app-svc") }}   # DONE2
   labels:
-    app: {{ .Values.webDeployment.name }}   # DONE
+    {{- include "visit-counter.labels" . | nindent 4 }}
+    {{- include "visit-counter.selectorLabels" (list . "web-app") | nindent 4 }}
 spec:
   type: LoadBalancer
   selector:
-    app: {{ .Values.webDeployment.name }}   # DONE
+    {{- include "visit-counter.selectorLabels" (list . "web-app") | nindent 4 }}
   ports:
     - protocol: TCP
-      port: {{ .Values.webService.port }}   # DONE
-      targetPort: {{ .Values.webService.portName }}   # DONE
+      port: {{ .Values.webService.port }}   # FIX
+      targetPort: {{ .Values.webService.portName }}   # FIX
