@@ -1,0 +1,14 @@
+webDeployment:
+  name: web-app
+webService:
+  name: web-svc
+  port: 80
+  portName: http-web-svc
+webAppDbPv:
+  name: web-app-db-pv
+webAppDbPvc:
+  name: web-app-db-pvc
+dbService:
+  name: db-svc
+  port: 5432
+  portName:  db-svc-port

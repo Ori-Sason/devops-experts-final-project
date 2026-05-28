@@ -28,7 +28,7 @@ spec:
                   echo "Sending $count requests to $route..."
 
                   for i in $(seq 1 $count); do
-                      wget -qO- "http://web-svc${route}" > /dev/null
+                      wget -qO- "http://{{ .Values.webService.name }}${route}" > /dev/null
                   done
               done
 

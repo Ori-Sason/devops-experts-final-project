@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: web-app-db-pvc
+  name: {{ .Values.webAppDbPvc.name }}   # DONE
 spec:
-  volumeName: web-app-db-pv
+  volumeName: {{ .Values.webAppDbPv.name }}   # DONE
   storageClassName: standard
   accessModes:
     - ReadWriteOnce

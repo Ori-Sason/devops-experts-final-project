@@ -1,31 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: web-app
+  name: {{ .Values.webDeployment.name }}
   labels:
-    app: web-app
+    app: {{ .Values.webDeployment.name }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: web-app
+      app: {{ .Values.webDeployment.name }}
   template:
     metadata:
       labels:
-        app: web-app
+        app: {{ .Values.webDeployment.name }}
     spec:
       containers:
-        - name: web-app
+        - name: {{ .Values.webDeployment.name }}
           image: orisason1/devops-experts-final-project:v4
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
-                name: web-app-configmap
+                name: {{ .Values.webDeployment.name }}-configmap   # DONE
             - secretRef:
-                name: web-app-db-secret
+                name: {{ .Values.webDeployment.name }}-db-secret   # DONE
           ports:
             - containerPort: 5000
-              name: http-web-svc
+              name: {{ .Values.webService.portName }}   # DONE
           resources:
             # Low to show HPA fast
             limits:
@@ -35,12 +35,12 @@ spec:
           readinessProbe:
             httpGet:
               path: /health
-              port: http-web-svc
+              port: {{ .Values.webService.portName }}   # DONE
             initialDelaySeconds: 10
           livenessProbe:
             httpGet:
               path: /health
-              port: http-web-svc
+              port: {{ .Values.webService.portName }}    # DONE
             initialDelaySeconds: 20
       initContainers:
       - name: wait-for-db
@@ -50,7 +50,8 @@ spec:
         - -c
         - |
           echo "Waiting for database service..."
-          until nc -z db-svc 5432; do
+          # DONE-svc name + port
+          until nc -z {{ .Values.dbService.name }} {{ .Values.dbService.port }}; do
             echo "DB not ready, sleeping 2s..."
             sleep 2
           done

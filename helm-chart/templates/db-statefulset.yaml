@@ -1,28 +1,28 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: web-app-db
+  name: {{ .Values.webDeployment.name }}-db   # DONE
   labels:
-    app: web-app-db
+    app: {{ .Values.webDeployment.name }}-db   # DONE
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: web-app-db
+      app: {{ .Values.webDeployment.name }}-db   # DONE
   template:
     metadata:
       labels:
-        app: web-app-db
+        app: {{ .Values.webDeployment.name }}-db   # DONE
     spec:
       containers:
-        - name: web-app-db
+        - name: {{ .Values.webDeployment.name }}-db   # DONE
           image: postgres:18.3-alpine3.23
           envFrom:
             - secretRef:
-                name: web-app-db-secret
+                name: {{ .Values.webDeployment.name }}-db-secret   # DONE
           ports:
-            - containerPort: 5432
-              name: db-svc
+            - containerPort: {{ .Values.dbService.port }}   # DONE
+              name: {{ .Values.dbService.portName }}   # DONE
           readinessProbe:
             exec:
               command:
@@ -45,7 +45,7 @@ spec:
       volumes:
         - name: storage-volume
           persistentVolumeClaim:
-            claimName: web-app-db-pvc
+            claimName: {{ .Values.webAppDbPvc.name }}   # DONE
       initContainers:
         - name: busybox
           image: busybox:latest

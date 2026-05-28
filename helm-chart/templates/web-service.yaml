@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: web-svc
+  name: {{ .Values.webService.name }}   # DONE
   labels:
-    app: web-app
+    app: {{ .Values.webDeployment.name }}   # DONE
 spec:
   type: LoadBalancer
   selector:
-    app: web-app
+    app: {{ .Values.webDeployment.name }}   # DONE
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: http-web-svc
+      port: {{ .Values.webService.port }}   # DONE
+      targetPort: {{ .Values.webService.portName }}   # DONE
