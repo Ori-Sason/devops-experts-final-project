@@ -26,7 +26,7 @@ spec:
               for route in $endpoints; do
                   count=$(get_random_0_to_9)
                   echo "Sending $count requests to $route..."
-                  
+
                   for i in $(seq 1 $count); do
                       wget -qO- "http://web-svc${route}" > /dev/null
                   done

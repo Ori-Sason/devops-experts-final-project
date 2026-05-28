@@ -2,7 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: web-app-db-pvc
-spec: 
+spec:
   volumeName: web-app-db-pv
   storageClassName: standard
   accessModes:

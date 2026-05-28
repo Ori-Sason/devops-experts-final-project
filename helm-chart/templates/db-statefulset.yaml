@@ -53,4 +53,3 @@ spec:
           volumeMounts:
             - mountPath: /var/lib/postgresql/18/docker
               name: storage-volume
-
