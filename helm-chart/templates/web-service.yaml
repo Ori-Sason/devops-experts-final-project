@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "visit-counter.componentName" (list . "web-app-svc") }}   # DONE2
+  name: {{ include "visit-counter.componentName" (list . "web-app-svc") }}
   labels:
     {{- include "visit-counter.labels" . | nindent 4 }}
     {{- include "visit-counter.selectorLabels" (list . "web-app") | nindent 4 }}
@@ -11,5 +11,5 @@ spec:
     {{- include "visit-counter.selectorLabels" (list . "web-app") | nindent 4 }}
   ports:
     - protocol: TCP
-      port: {{ .Values.web.service.port }}   # DONE3
-      targetPort: {{ .Values.web.service.portName }}   # DONE3
+      port: {{ .Values.web.service.port }}
+      targetPort: {{ .Values.web.service.portName }}

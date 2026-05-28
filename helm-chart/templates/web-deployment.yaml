@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "visit-counter.componentName" (list . "web-app") }}  # DONE2
+  name: {{ include "visit-counter.componentName" (list . "web-app") }}
   labels:
     {{- include "visit-counter.labels" . | nindent 4 }}
     {{- include "visit-counter.selectorLabels" (list . "web-app") | nindent 4 }}
@@ -22,12 +22,12 @@ spec:
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
-                name: {{ include "visit-counter.componentName" (list . "web-app-configmap") }}   # DONE2
+                name: {{ include "visit-counter.componentName" (list . "web-app-configmap") }}
             - secretRef:
-                name: {{ include "visit-counter.componentName" (list . "web-db-secret") }}   # DONE2
+                name: {{ include "visit-counter.componentName" (list . "web-db-secret") }}
           ports:
             - containerPort: 5000
-              name: {{ .Values.web.service.portName }}   # DONE3
+              name: {{ .Values.web.service.portName }}
           resources:
             # Low to show HPA fast
             limits:
@@ -37,12 +37,12 @@ spec:
           readinessProbe:
             httpGet:
               path: /health
-              port: {{ .Values.web.service.portName }}   # DONE3
+              port: {{ .Values.web.service.portName }}
             initialDelaySeconds: 10
           livenessProbe:
             httpGet:
               path: /health
-              port: {{ .Values.web.service.portName }}    # DONE3
+              port: {{ .Values.web.service.portName }}
             initialDelaySeconds: 20
       initContainers:
       - name: wait-for-db
@@ -52,8 +52,8 @@ spec:
         - -c
         - |
           echo "Waiting for database service..."
-          # DONE-svc name + port
-          until nc -z {{ include "visit-counter.componentName" (list . "web-db-svc") }} {{ .Values.db.service.port }}; do   # DONE3
+
+          until nc -z {{ include "visit-counter.componentName" (list . "web-db-svc") }} {{ .Values.db.service.port }}; do
             echo "DB not ready, sleeping 2s..."
             sleep 2
           done

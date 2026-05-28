@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "visit-counter.componentName" (list . "traffic-generator") }}   # DONE2
+  name: {{ include "visit-counter.componentName" (list . "traffic-generator") }}
 spec:
   schedule: "*/2 * * * *"
   jobTemplate:
