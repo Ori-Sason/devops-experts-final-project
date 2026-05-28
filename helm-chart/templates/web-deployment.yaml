@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.webDeployment.name }}
+  name: {{ include "visit-counter.componentName" (list . "web-app") }}  # DONE2
   labels:
     app: {{ .Values.webDeployment.name }}
 spec:
@@ -15,14 +15,14 @@ spec:
         app: {{ .Values.webDeployment.name }}
     spec:
       containers:
-        - name: {{ .Values.webDeployment.name }}
+        - name: web-app
           image: orisason1/devops-experts-final-project:v4
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
-                name: {{ .Values.webDeployment.name }}-configmap   # DONE
+                name: {{ include "visit-counter.componentName" (list . "web-app-configmap") }}   # DONE2
             - secretRef:
-                name: {{ .Values.webDeployment.name }}-db-secret   # DONE
+                name: {{ include "visit-counter.componentName" (list . "web-app-db-secret") }}   # DONE2
           ports:
             - containerPort: 5000
               name: {{ .Values.webService.portName }}   # DONE
@@ -51,7 +51,7 @@ spec:
         - |
           echo "Waiting for database service..."
           # DONE-svc name + port
-          until nc -z {{ .Values.dbService.name }} {{ .Values.dbService.port }}; do
+          until nc -z {{ include "visit-counter.componentName" (list . "web-db-svc") }} {{ .Values.dbService.port }}; do
             echo "DB not ready, sleeping 2s..."
             sleep 2
           done

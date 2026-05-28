@@ -1,12 +1,12 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ .Values.webDeployment.name }}-hpa   # DONE
+  name: {{ include "visit-counter.componentName" (list . "web-app-hpa") }}   # DONE2
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ .Values.webDeployment.name }}  # DONE
+    name: {{ include "visit-counter.componentName" (list . "web-app") }}  # DONE2
   minReplicas: 1
   maxReplicas: 5
   metrics:

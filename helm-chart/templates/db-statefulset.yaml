@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ .Values.webDeployment.name }}-db   # DONE
+  name: {{ include "visit-counter.componentName" (list . "web-app-db") }}   # DONE2
   labels:
     app: {{ .Values.webDeployment.name }}-db   # DONE
 spec:
@@ -15,11 +15,11 @@ spec:
         app: {{ .Values.webDeployment.name }}-db   # DONE
     spec:
       containers:
-        - name: {{ .Values.webDeployment.name }}-db   # DONE
+        - name: web-app-db
           image: postgres:18.3-alpine3.23
           envFrom:
             - secretRef:
-                name: {{ .Values.webDeployment.name }}-db-secret   # DONE
+                name: {{ include "visit-counter.componentName" (list . "web-app-db-secret") }}   # DONE2
           ports:
             - containerPort: {{ .Values.dbService.port }}   # DONE
               name: {{ .Values.dbService.portName }}   # DONE
@@ -45,7 +45,7 @@ spec:
       volumes:
         - name: storage-volume
           persistentVolumeClaim:
-            claimName: {{ .Values.webAppDbPvc.name }}   # DONE
+            claimName: {{ include "visit-counter.componentName" (list . "web-app-db-pvc") }}   # DONE2
       initContainers:
         - name: busybox
           image: busybox:latest

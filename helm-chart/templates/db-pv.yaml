@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: {{ .Values.webAppDbPv.name }}   # DONE
+  name: {{ include "visit-counter.componentName" (list . "web-app-db-pv") }}   # DONE2
 spec:
   volumeMode: Filesystem
   storageClassName: standard

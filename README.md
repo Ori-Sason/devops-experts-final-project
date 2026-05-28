@@ -78,11 +78,11 @@ kubectl apply -f ./kubernetes/
 
 Next, we need Minikube to expose the web service to our host machine
 ```bash
-minikube service web-svc
+minikube service visit-counter-dev-web-svc
 ```
 
 This will open a tab on your browser showing the web app.
 
 To shut down the application:
-1. Stop the process of `minikube service web-svc`.
+1. Stop the process of `minikube service visit-counter-dev-web-svc`.
 2. `kubectl delete -f ./kubernetes/`
