@@ -1,13 +1,11 @@
 global:
   stage: dev
 
-webDeployment:
-  name: web-app
-webService:
-  name: web-svc
-  port: 80
-  portName: http-web-svc
-dbService:
-  name: db-svc
-  port: 5432
-  portName:  db-svc-port
+web:
+  service:
+    port: 80
+    portName: web-app-http
+db:
+  service:
+    port: 5432
+    portName:  web-db-postgres

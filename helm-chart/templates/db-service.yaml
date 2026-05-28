@@ -11,5 +11,5 @@ spec:
     {{- include "visit-counter.selectorLabels" (list . "web-db") | nindent 4 }}   # DONE
   ports:
     - protocol: TCP
-      port: {{ .Values.dbService.port }}   # FIX
-      targetPort: {{ .Values.dbService.portName }}   # FIX
+      port: {{ .Values.db.service.port }}   # DONE3
+      targetPort: {{ .Values.db.service.portName }}   # DONE3

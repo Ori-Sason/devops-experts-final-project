@@ -27,7 +27,7 @@ spec:
                 name: {{ include "visit-counter.componentName" (list . "web-db-secret") }}   # DONE2
           ports:
             - containerPort: 5000
-              name: {{ .Values.webService.portName }}   # DONE
+              name: {{ .Values.web.service.portName }}   # DONE3
           resources:
             # Low to show HPA fast
             limits:
@@ -37,12 +37,12 @@ spec:
           readinessProbe:
             httpGet:
               path: /health
-              port: {{ .Values.webService.portName }}   # DONE
+              port: {{ .Values.web.service.portName }}   # DONE3
             initialDelaySeconds: 10
           livenessProbe:
             httpGet:
               path: /health
-              port: {{ .Values.webService.portName }}    # DONE
+              port: {{ .Values.web.service.portName }}    # DONE3
             initialDelaySeconds: 20
       initContainers:
       - name: wait-for-db
@@ -53,7 +53,7 @@ spec:
         - |
           echo "Waiting for database service..."
           # DONE-svc name + port
-          until nc -z {{ include "visit-counter.componentName" (list . "web-db-svc") }} {{ .Values.dbService.port }}; do   # FIX
+          until nc -z {{ include "visit-counter.componentName" (list . "web-db-svc") }} {{ .Values.db.service.port }}; do   # DONE3
             echo "DB not ready, sleeping 2s..."
             sleep 2
           done

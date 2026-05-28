@@ -23,8 +23,8 @@ spec:
             - secretRef:
                 name: {{ include "visit-counter.componentName" (list . "web-db-secret") }}   # DONE2
           ports:
-            - containerPort: {{ .Values.dbService.port }}   # FIX
-              name: {{ .Values.dbService.portName }}   # FIX
+            - containerPort: {{ .Values.db.service.port }}   # DONE3
+              name: {{ .Values.db.service.portName }}   # DONE3
           readinessProbe:
             exec:
               command:

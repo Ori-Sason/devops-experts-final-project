@@ -11,5 +11,5 @@ spec:
     {{- include "visit-counter.selectorLabels" (list . "web-app") | nindent 4 }}
   ports:
     - protocol: TCP
-      port: {{ .Values.webService.port }}   # FIX
-      targetPort: {{ .Values.webService.portName }}   # FIX
+      port: {{ .Values.web.service.port }}   # DONE3
+      targetPort: {{ .Values.web.service.portName }}   # DONE3
