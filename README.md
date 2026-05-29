@@ -12,6 +12,7 @@ I've noted my technical decisions and learning process in [learning-notes.md](./
 * Kubernetes cluster deployed locally on Minikube (using Helm Charts).
 * Support HPA - Horizontal Pod Autoscaling (check out [HPA.md](./MDs/HPA.md))
 * Traffic cronjob - creates synthetic traffic to the application (check out [traffic-cronjob.md](./MDs/traffic-cronjob.md))
+* Chart is published on GitHub Pages.
 
 # Web App
 <div align="center">
