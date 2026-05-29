@@ -85,7 +85,7 @@ We were requested to set up a cluster using Minikube to deploy your application,
 
 ## Phase 3 - Helm Charts, Git and Jenkins
 
-End phase commit: ()[] #MISSING
+End phase commit: ()[] # FIX
 
 The objective of Phase 3 focuses on automating the deployment process and improving version control practices.  
 
@@ -182,3 +182,7 @@ We are requested to create a **Helm Chart** for our Kubernetes application, set 
   The `PATH` variable isn't just a single folder, it is a colon-separated list of directories that the operating system searches from left to right whenever we run a command.  
   A standard Linux container comes out of the box with a `PATH` that looks something like this: `/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin`.  
   Now, when the container runs health check by using `wget`, it will first look for that package at `/app/.venv/bin`. Since it won't find it there, it will try the following folders, started from `/usr/local/bin` and on.
+* Helm `_helpers.tpl` functionality  
+   This file is used to abstract complex string logic into reusable templates. I implemented a dynamic function named `componentName` that accepts a `list` containing the root context (`.`) and a component string identifier. It returns a uniform naming convention: `<chart name>-<stage>-<component name>`, while utilizing `trunc 63` to guarantee compliance with Kubernetes DNS limits.  
+* Kubernetes standard labels  
+  I used the official community standard prefix `app.kubernetes.io/` for resource labeling. This ensures universal compatibility with DevOps observability tools (like Prometheus), prevents name collisions with cloud providers, and clearly distinguishes internal system metadata from business logic.
