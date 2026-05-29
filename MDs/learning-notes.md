@@ -186,3 +186,17 @@ We are requested to create a **Helm Chart** for our Kubernetes application, set 
    This file is used to abstract complex string logic into reusable templates. I implemented a dynamic function named `componentName` that accepts a `list` containing the root context (`.`) and a component string identifier. It returns a uniform naming convention: `<chart name>-<stage>-<component name>`, while utilizing `trunc 63` to guarantee compliance with Kubernetes DNS limits.  
 * Kubernetes standard labels  
   I used the official community standard prefix `app.kubernetes.io/` for resource labeling. This ensures universal compatibility with DevOps observability tools (like Prometheus), prevents name collisions with cloud providers, and clearly distinguishes internal system metadata from business logic.
+* Publishing the Helm Chart  
+  While publishing to an OCI-compliant registry (such as GitHub Packages) is the modern industry standard for distributing Helm charts, I explicitly chose to host the chart using **GitHub Pages** due to security constraints regarding credential scoping.  
+  * The OCI vs. GitHub Pages Dilemma  
+    OCI (Open Container Initiative) is a standard designed for container images that has evolved to support alternative cloud-native artifacts like Helm charts. However, authenticating with GitHub Packages (GHCR) via external automation (like Jenkins) requires a Classic Personal Access Token (PAT). GitHub strictly forces the Classic PAT's `write:packages` scope to inherit full read/write access to **all** repositories across the entire account, violating the principle of least privilege.  
+  * The Secure Alternative:  
+    To mitigate this security risk, I utilized GitHub Pages paired with a Fine-Grained PAT. This allowed me to restrict Jenkins' write permissions exclusively to this single, specific repository.  
+  * Deployment Mechanics  
+    Jenkins pipeline packages the chart, updates the tracking index, and pushes the artifacts to the `helm-publish` branch, which is configured to serve GitHub Pages.  
+  * To add the repository and install the chart:
+    ```bash
+    helm repo add myrepo https://ori-sason.github.io/devops-experts-final-project/ # myrepo is a dynamic name
+    helm install my-release myrepo/visit-count
+    ```  
+    Note: Replace `install my-release` with `pull` to download the chart compressed file, without deploying it to the cluster.
