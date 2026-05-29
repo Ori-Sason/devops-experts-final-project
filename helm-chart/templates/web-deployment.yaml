@@ -6,7 +6,9 @@ metadata:
     {{- include "visit-counter.labels" . | nindent 4 }}
     {{- include "visit-counter.selectorLabels" (list . "web-app") | nindent 4 }}
 spec:
-  replicas: 1
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.web.replicas }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "visit-counter.selectorLabels" (list . "web-app") | nindent 6 }}

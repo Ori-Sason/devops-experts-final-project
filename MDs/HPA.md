@@ -14,6 +14,9 @@ If we don't install the add-on, the container "ceiling" will be the Node CPU, wh
 You need the add-on because the **Metrics Server** acts as the "thermometer" that reports actual usage to Kubernetes. Without it, the HPA is "blind" to how much CPU the Pod is consuming relative to its **request**. While the Node's total CPU remains the physical "ceiling," Kubernetes can only track and scale against your defined "request ceiling" if the add-on is there to provide the data.
 
 ## To stress the web-app Pods
+Enable `autoscaling` on `helm-chart/values.yaml`.  
+Next, install or upgrade the cluster by running `helm install` or `helm upgrade`.
+
 Run the following command
 ```bash
 kubectl run -i --tty visit-counter-load-generator --rm --image=busybox:1.28 --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://visit-counter-dev-web-app-svc/stress; done"
