@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  visit-counter:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2026-05-29T22:25:56.4453856+03:00"
+    description: A Helm chart for simple visit counter application
+    digest: d7971b6e510111748552d2eaee2e056cc1575a2a435615a2e94c68a290cb0d2b
+    name: visit-counter
+    type: application
+    urls:
+    - visit-counter-0.1.0.tgz
+    version: 0.1.0
+generated: "2026-05-29T22:25:56.4442052+03:00"
