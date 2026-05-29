@@ -1,0 +1,21 @@
+global:
+  stage: dev
+
+web:
+  replicas: 1
+  service:
+    port: 80
+    portName: web-app-http
+db:
+  service:
+    port: 5432
+    portName:  web-db-postgres
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCpuUtilizationPercentage: 50
+
+syntheticTraffic:
+  enabled: true

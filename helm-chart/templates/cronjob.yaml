@@ -1,7 +1,8 @@
+{{- if .Values.syntheticTraffic.enabled }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: traffic-generator
+  name: {{ include "visit-counter.componentName" (list . "traffic-generator") }}
 spec:
   schedule: "*/2 * * * *"
   jobTemplate:
@@ -26,11 +27,12 @@ spec:
               for route in $endpoints; do
                   count=$(get_random_0_to_9)
                   echo "Sending $count requests to $route..."
-                  
+
                   for i in $(seq 1 $count); do
-                      wget -qO- "http://web-svc${route}" > /dev/null
+                      wget -qO- "http://{{ include "visit-counter.componentName" (list . "web-app-svc") }}${route}" > /dev/null
                   done
               done
 
               echo "Traffic generation complete."
           restartPolicy: OnFailure
+{{- end }}

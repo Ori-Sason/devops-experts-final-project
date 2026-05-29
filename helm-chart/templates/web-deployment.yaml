@@ -1,18 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: web-app
+  name: {{ include "visit-counter.componentName" (list . "web-app") }}
   labels:
-    app: web-app
+    {{- include "visit-counter.labels" . | nindent 4 }}
+    {{- include "visit-counter.selectorLabels" (list . "web-app") | nindent 4 }}
 spec:
-  replicas: 1
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.web.replicas }}
+  {{- end }}
   selector:
     matchLabels:
-      app: web-app
+      {{- include "visit-counter.selectorLabels" (list . "web-app") | nindent 6 }}
   template:
     metadata:
       labels:
-        app: web-app
+        {{- include "visit-counter.labels" . | nindent 8 }}
+        {{- include "visit-counter.selectorLabels" (list . "web-app") | nindent 8 }}
     spec:
       containers:
         - name: web-app
@@ -20,12 +24,12 @@ spec:
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
-                name: web-app-configmap
+                name: {{ include "visit-counter.componentName" (list . "web-app-configmap") }}
             - secretRef:
-                name: web-app-db-secret
+                name: {{ include "visit-counter.componentName" (list . "web-db-secret") }}
           ports:
             - containerPort: 5000
-              name: http-web-svc
+              name: {{ .Values.web.service.portName }}
           resources:
             # Low to show HPA fast
             limits:
@@ -35,12 +39,12 @@ spec:
           readinessProbe:
             httpGet:
               path: /health
-              port: http-web-svc
+              port: {{ .Values.web.service.portName }}
             initialDelaySeconds: 10
           livenessProbe:
             httpGet:
               path: /health
-              port: http-web-svc
+              port: {{ .Values.web.service.portName }}
             initialDelaySeconds: 20
       initContainers:
       - name: wait-for-db
@@ -50,7 +54,8 @@ spec:
         - -c
         - |
           echo "Waiting for database service..."
-          until nc -z db-svc 5432; do
+
+          until nc -z {{ include "visit-counter.componentName" (list . "web-db-svc") }} {{ .Values.db.service.port }}; do
             echo "DB not ready, sleeping 2s..."
             sleep 2
           done

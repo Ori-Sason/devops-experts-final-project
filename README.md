@@ -9,7 +9,7 @@ I've noted my technical decisions and learning process in [learning-notes.md](./
 * */visits* page shows a count of logging into the different pages of the app.
 * For DB, I use PostgreSQL container, which stores on a Docker named volume (on local deployment) or on Kubernetes hostPath (on K8s deployment).
 * Dockerized: easily containerized for streamlined deployment.
-* Kubernetes cluster deployed locally on Minikube.
+* Kubernetes cluster deployed locally on Minikube (using Helm Charts).
 * Support HPA - Horizontal Pod Autoscaling (check out [HPA.md](./MDs/HPA.md))
 * Traffic cronjob - creates synthetic traffic to the application (check out [traffic-cronjob.md](./MDs/traffic-cronjob.md))
 
@@ -20,7 +20,7 @@ I've noted my technical decisions and learning process in [learning-notes.md](./
 
 ## Project structure
 ```
-kubernetes              # Kubernetes definition files
+helm-chart
 MDs                     # Notes
 web-app                 # Web app project
 ├───app.py              # Application entry point
@@ -46,6 +46,7 @@ web-app                 # Web app project
 ### Requirements
 1. Docker Desktop ([Installation](https://docs.docker.com/desktop/) - look for `Install Docker Desktop`).
 2. Minikube (local Kubernetes for learning purposes) ([Installation](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fwindows%2Fx86-64%2Fstable%2Fchocolatey)).
+3. Helm Charts ([Installation](https://helm.sh/docs/intro/install/))
 
 ### Running the application locally using Docker Compose
 
@@ -73,16 +74,16 @@ If it's not, run `minikube start`.
 
 To run the application
 ```bash
-kubectl apply -f ./kubernetes/
+helm install app ./helm-chart/  # app is the release name, which is dynamic
 ```
 
 Next, we need Minikube to expose the web service to our host machine
 ```bash
-minikube service web-svc
+minikube service visit-counter-dev-web-app-svc
 ```
 
 This will open a tab on your browser showing the web app.
 
 To shut down the application:
-1. Stop the process of `minikube service web-svc`.
-2. `kubectl delete -f ./kubernetes/`
+1. Stop the process of `minikube service visit-counter-dev-web-app-svc`.
+2. `helm uninstall app`

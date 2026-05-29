@@ -1,0 +1,11 @@
+.git/
+**/venv
+**/.venv
+**/__pycache__
+*.pyc
+
+*.db
+
+*.env
+!/src/env/postgres.env
+!/src/env/web-app.env

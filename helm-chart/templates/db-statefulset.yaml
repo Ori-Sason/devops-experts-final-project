@@ -1,28 +1,30 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: web-app-db
+  name: {{ include "visit-counter.componentName" (list . "web-db") }}
   labels:
-    app: web-app-db
+    {{- include "visit-counter.labels" . | nindent 4 }}
+    {{- include "visit-counter.selectorLabels" (list . "web-db") | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: web-app-db
+      {{- include "visit-counter.selectorLabels" (list . "web-db") | nindent 6 }}
   template:
     metadata:
       labels:
-        app: web-app-db
+        {{- include "visit-counter.labels" . | nindent 8 }}
+        {{- include "visit-counter.selectorLabels" (list . "web-db") | nindent 8 }}
     spec:
       containers:
-        - name: web-app-db
+        - name: web-db
           image: postgres:18.3-alpine3.23
           envFrom:
             - secretRef:
-                name: web-app-db-secret
+                name: {{ include "visit-counter.componentName" (list . "web-db-secret") }}
           ports:
-            - containerPort: 5432
-              name: db-svc
+            - containerPort: {{ .Values.db.service.port }}
+              name: {{ .Values.db.service.portName }}
           readinessProbe:
             exec:
               command:
@@ -45,7 +47,7 @@ spec:
       volumes:
         - name: storage-volume
           persistentVolumeClaim:
-            claimName: web-app-db-pvc
+            claimName: {{ include "visit-counter.componentName" (list . "web-db-pvc") }}
       initContainers:
         - name: busybox
           image: busybox:latest
@@ -53,4 +55,3 @@ spec:
           volumeMounts:
             - mountPath: /var/lib/postgresql/18/docker
               name: storage-volume
-
