@@ -6,9 +6,9 @@ spec:
   volumeMode: Filesystem
   storageClassName: standard
   capacity:
-    storage: 2Gi
+    storage: 1Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: /data/web-app-db-postgres/
+    path: /data/web-db-postgres/
     type: DirectoryOrCreate
