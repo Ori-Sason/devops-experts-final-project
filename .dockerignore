@@ -13,3 +13,4 @@ Dockerfile
 .env
 /env
 **/env
+**/tests
