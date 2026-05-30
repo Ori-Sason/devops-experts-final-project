@@ -2,7 +2,7 @@ import os
 from functools import wraps
 import hashlib
 from flask import Flask, render_template, request, redirect, url_for, jsonify
-from db.visit_count import increment_visit, get_visits
+from src.db.visit_count import increment_visit, get_visits
 
 
 app = Flask(__name__)

@@ -17,4 +17,4 @@ USER appuser
 EXPOSE 5000
 HEALTHCHECK --timeout=3s \
     CMD wget --quiet --tries=1 --output-document=/dev/null http://127.0.0.1:5000/health || exit 1
-CMD [ "python", "app.py" ]
+CMD [ "python", "-m", "src.app" ]
