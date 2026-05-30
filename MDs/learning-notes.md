@@ -166,12 +166,12 @@ We are requested to create a **Helm Chart** for our Kubernetes application, set 
   * Since Dockerfile content is written now in the context of the root folder, it also influences `docker build` and Docker Compose commands
     ```bash
     docker build -f ./web-app/Dockerfile -t <image-tag> .
-    docker compose -f ./web-app/docker-compose.yml --project-directory . up
-    docker compose -f ./web-app/docker-compose.yml --project-directory . down [-v]
+    docker compose -f ./web-app/docker-compose.yaml --project-directory . up
+    docker compose -f ./web-app/docker-compose.yaml --project-directory . down [-v]
     ```
   * Explanation about build context  
     Since we build from the root folder, this is the context Docker sees. Therefore, I had to update 3 things:
-    * Updated `Dockerfile` and `docker-compose.yml` content so it will be in the context of the root folder.
+    * Updated `Dockerfile` and `docker-compose.yaml` content so it will be in the context of the root folder.
     * Moved `.dockerignore` from `web-app` folder to the root folder.  
     I could keep it in `web-app` folder and refer to it in the build command by using the `--dockerignore` flag. But then I had to update the content inside the file. Since I can have many Dockerfiles in a project (even though I have only one here), I've decided to have a main standard `.dockerignore` file for the whole project in the root directory.
 * Python `PATH` environment variable  

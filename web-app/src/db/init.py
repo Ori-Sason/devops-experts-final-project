@@ -47,7 +47,7 @@ def _is_table_exists(table_name):
     cursor.execute(query)
     res = cursor.fetchone()
     cursor.close()
-    
+
     return res['exists'] is True
 
 
