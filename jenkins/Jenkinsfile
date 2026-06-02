@@ -191,7 +191,8 @@ pipeline {
                                 -f ./helm-chart/values-test.yaml \
                                 --namespace ${TEST_NS} \
                                 --create-namespace \
-                                --set image.tag=${RELEASE_VERSION}
+                                --set web.image.tag=${RELEASE_VERSION} \
+                                --set currentNamespace=${TEST_NS}
 
                             KUBECONFIG=${CI_KUBE} helm test ${TEST_HELM_CHART_NAME} \
                                 --namespace ${TEST_NS}
@@ -202,7 +203,7 @@ pipeline {
                         always {
                             echo 'Cleaning up environment...'
                             sh """
-                                KUBECONFIG=${CI_KUBE} helm uninstall ${TEST_HELM_CHART_NAME}
+                                KUBECONFIG=${CI_KUBE} helm uninstall ${TEST_HELM_CHART_NAME} --namespace ${TEST_NS}
                                 KUBECONFIG=${CI_KUBE} kubectl delete namespace ${TEST_NS} --wait=false || true
                                 rm -rf .kube_ci
                             """
