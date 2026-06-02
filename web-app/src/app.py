@@ -48,4 +48,5 @@ def page_not_found(e):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=os.environ.get('WEB_APP_PORT', 5000))
+    # nosec B104 is making bandit ignore. It complains about 0.0.0.0, while it's required for Docker container networking
+    app.run(host='0.0.0.0', port=os.environ.get('WEB_APP_PORT', 5000))  # nosec B104
