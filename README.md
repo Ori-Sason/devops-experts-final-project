@@ -24,16 +24,18 @@ I've noted my technical decisions and learning process in [learning-notes.md](./
 helm-chart
 MDs                     # Notes
 web-app                 # Web app project
-├───app.py              # Application entry point
 ├───docker-compose.yml
 ├───Dockerfile  
-├───requirements.txt    # Python dependencies
-├───db                  # DB related scripts
+├───pyproject.toml      # Python dependencies
 ├───env
-├───static
-│   ├───css
-│   └───images  
-└───templates           # Jinja2 HTML templates (pages)
+├───src
+│   ├───app.py          # Application entry point
+│   ├───db              # DB related scripts
+│   ├───static
+│   │   ├───css
+│   │   └───images  
+│   └───templates       # Jinja2 HTML templates (pages)
+└───tests               # tests files using unittest
 ```
 * Mentioned only relevant files
 
