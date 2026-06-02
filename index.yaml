@@ -21,24 +21,4 @@ entries:
     urls:
     - visit-counter-0.1.0.tgz
     version: 0.1.0
-  - apiVersion: v2
-    appVersion: 1.16.0
-    created: "2026-06-02T19:31:16.15274211Z"
-    description: A Helm chart for simple visit counter application
-    digest: fd3c3dad9118a9da22073c0b90b1d5e9a0775a2d1d37dfcc524a675ae5b82618
-    name: visit-counter
-    type: application
-    urls:
-    - visit-counter-0.0.2026060219181210.tgz
-    version: 0.0.2026060219181210
-  - apiVersion: v2
-    appVersion: 1.16.0
-    created: "2026-06-02T19:31:16.152282171Z"
-    description: A Helm chart for simple visit counter application
-    digest: d5bf24cd0df1f2d32f432b4cd3be405e38d44207f6a3b07a4afecb343ba53319
-    name: visit-counter
-    type: application
-    urls:
-    - visit-counter-0.0.202606021911139.tgz
-    version: 0.0.202606021911139
 generated: "2026-06-02T19:31:16.15155477Z"
