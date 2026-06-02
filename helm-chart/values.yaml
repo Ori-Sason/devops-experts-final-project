@@ -3,6 +3,9 @@ global:
 
 web:
   replicas: 1
+  image:
+    repository: orisason1/devops-experts-final-project
+    tag: v4
   service:
     port: 80
     portName: web-app-http

@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: web-app
-          image: orisason1/devops-experts-final-project:v4
+          image: "{{ .Values.web.image.repository }}:{{ .Values.web.image.tag }}"
           imagePullPolicy: Always
           envFrom:
             - configMapRef:

@@ -11,6 +11,9 @@ pipeline {
     environment {
         WEB_APP_BUILT = 'false'
         RELEASE_VERSION = "${new java.text.SimpleDateFormat('yyyyMMdd-HHmmss').format(new Date())}-${BUILD_NUMBER}"
+        CI_KUBE = '.kube_ci/config'
+        TEST_NS = "test-${RELEASE_VERSION}"
+        TEST_HELM_CHART_NAME = "test-${BUILD_NUMBER}"
     }
 
     stages {
@@ -153,29 +156,29 @@ pipeline {
 
                             # 1. Create a directory for the containerized kubectl to use
                             mkdir -p .kube_ci
-                            cp /var/jenkins_home/.kube/config .kube_ci/config
+                            cp /var/jenkins_home/.kube/config ${CI_KUBE}
 
                             # 2. DYNAMICALLY replace any host path leading up to .minikube with the Linux container mount path
                             # This looks for anything matching '.../.minikube' (including Windows backslashes) and swaps it
-                            sed -i -E 's|[^ ]+(\\|/)\\.minikube|/var/jenkins_home/.minikube|g' .kube_ci/config
+                            sed -i -E 's|[^ ]+(\\|/)\\.minikube|/var/jenkins_home/.minikube|g' ${CI_KUBE}
 
                             # 3. Convert remaining Windows backslashes to Linux forward slashes for the subfolders
-                            sed -i 's|\\\\|/|g' .kube_ci/config
+                            sed -i 's|\\\\|/|g' ${CI_KUBE}
 
                             # 4. Bake certificates inline to create a self-contained, zero-dependency config.
                             # This strips out irrelevant contexts (--minify) and converts external file paths
                             # into embedded base64 strings (--flatten) so subsequent stages don't rely on host mounts.
-                            KUBECONFIG=.kube_ci/config kubectl config view --flatten --minify > .kube_ci/config-portable
-                            mv .kube_ci/config-portable .kube_ci/config
+                            KUBECONFIG=${CI_KUBE} kubectl config view --flatten --minify > .kube_ci/config-portable
+                            mv .kube_ci/config-portable ${CI_KUBE}
 
                             # 5. Use sed to replace 127.0.0.1 with host.docker.internal
                             # This looks for the 'server:' line and swaps the IP, keeping the original port
                             # i flag on sed saves the file
-                            sed -i 's/127.0.0.1/host.docker.internal/g' .kube_ci/config
+                            sed -i 's/127.0.0.1/host.docker.internal/g' ${CI_KUBE}
 
                             # 6. This tells the kubeconfig itself to trust the connection (since we didn't move other certificates)
-                            sed -i '/certificate-authority-data/d' .kube_ci/config
-                            sed -i '/server: https/a \\    insecure-skip-tls-verify: true' .kube_ci/config
+                            sed -i '/certificate-authority-data/d' ${CI_KUBE}
+                            sed -i '/server: https/a \\    insecure-skip-tls-verify: true' ${CI_KUBE}
                         '''
                     }
                 }
@@ -184,14 +187,14 @@ pipeline {
                     steps {
                         echo 'Testing Helm chart...'
                         sh """
-                            KUBECONFIG=.kube_ci/config helm install test-${BUILD_NUMBER} ./helm-chart \
-                                --namespace test-${RELEASE_VERSION} \
-                                --create-namespace
-                            # FIX --set image.tag=${RELEASE_VERSION} AND ADD BACKSLASH AT THE PREVIOUS LINE
-                            # FIX add -f .values-test.yml
+                            KUBECONFIG=${CI_KUBE} helm install ${TEST_HELM_CHART_NAME} ./helm-chart \
+                                -f ./helm-chart/values-test.yaml \
+                                --namespace ${TEST_NS} \
+                                --create-namespace \
+                                --set image.tag=${RELEASE_VERSION}
 
-                            KUBECONFIG=.kube_ci/config helm test test-${BUILD_NUMBER} \
-                                --namespace test-${RELEASE_VERSION}
+                            KUBECONFIG=${CI_KUBE} helm test ${TEST_HELM_CHART_NAME} \
+                                --namespace ${TEST_NS}
                         """
                     }
 
@@ -199,7 +202,8 @@ pipeline {
                         always {
                             echo 'Cleaning up environment...'
                             sh """
-                                KUBECONFIG=.kube_ci/config kubectl delete namespace test-${RELEASE_VERSION} --wait=false || true
+                                KUBECONFIG=${CI_KUBE} helm uninstall ${TEST_HELM_CHART_NAME}
+                                KUBECONFIG=${CI_KUBE} kubectl delete namespace ${TEST_NS} --wait=false || true
                                 rm -rf .kube_ci
                             """
                         }
@@ -211,7 +215,7 @@ pipeline {
                         dir('helm-chart') {
                             echo "Updating values.yaml with image tag ${RELEASE_VERSION} and Chart version"
                             sh """
-                                yq -i '.image.tag = \"${RELEASE_VERSION}\"' values-test.yaml
+                                yq -i '.web.image.tag = \"${RELEASE_VERSION}\"' values-test.yaml
                                 yq -i '.version = \"0.0.${RELEASE_VERSION.replace('-', '')}\"' Chart.yaml
                             """
 
