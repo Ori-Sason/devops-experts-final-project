@@ -217,7 +217,7 @@ pipeline {
                             echo "Updating values.yaml with image tag ${RELEASE_VERSION} and Chart version"
                             sh """
                                 yq -i '.web.image.tag = \"${RELEASE_VERSION}\"' values-test.yaml
-                                yq -i '.version = \"0.0.${RELEASE_VERSION.replace('-', '')}\"' Chart.yaml
+                                yq -i '.version = \"0.1.${RELEASE_VERSION.replace('-', '')}\"' Chart.yaml
                             """
 
                             echo 'Package chart from main branch to a temporary outside folder'
