@@ -46,7 +46,7 @@ pipeline {
                 // 2. Add uv-bin and /usr/local/bin (where Helm lives) to the execution PATH
                 PATH = "${WORKSPACE}/.uv-bin:/usr/local/bin:${env.PATH}"
 
-                IMAGE_NAME = "orisason1/devops-experts-final-project-jenkins" // FIX - use repository name
+                IMAGE_NAME = "orisason1/devops-experts-final-project-jenkins"  // Change if necessary
             }
 
             stages {

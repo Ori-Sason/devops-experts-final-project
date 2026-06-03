@@ -41,6 +41,8 @@
   * Docker Pipeline (enables native `docker.build` and `docker.withRegistry` syntax)
   * (Optional) Pipeline: Stage View
   * (Optional) Blue Ocean
+* In [/jenkins/Jenkinsfile](/jenkins/Jenkinsfile), update `web-app.environment.IMAGE_NAME` to your Docker hub `<account name>/<new repository name>`.  
+  Commit the change and push to your forked repository.
 * Create new job
   * Name: `final-project-pipeline`
   * Select `Pipeline` as the project type and click `OK`
