@@ -1,3 +1,5 @@
+# Learning notes
+
 This section documents the architectural choices and technical insights I gained during development. These notes serve to clarify my decision-making process and provide a roadmap of the concepts I've mastered during this phase.
 
 ## Phase 1 - Docker
@@ -200,3 +202,4 @@ We are requested to create a **Helm Chart** for our Kubernetes application, set 
     helm install my-release myrepo/visit-count
     ```  
     Note: Replace `install my-release` with `pull` to download the chart compressed file, without deploying it to the cluster.
+* Notes related to Jenkins can be found in [jenkins-notes.md](./MDs/jenkins-notes.md) and [running-jenkins.md](./running-jenkins.md).

@@ -158,7 +158,7 @@ pipeline {
                             mkdir -p .kube_ci
                             cp /var/jenkins_home/.kube/config ${CI_KUBE}
 
-                            # 2. DYNAMICALLY replace any host path leading up to .minikube with the Linux container mount path
+                            # 2. Dynamically replace any host path leading up to .minikube with the Linux container mount path
                             # This looks for anything matching '.../.minikube' (including Windows backslashes) and swaps it
                             sed -i -E 's|[^ ]+(\\|/)\\.minikube|/var/jenkins_home/.minikube|g' ${CI_KUBE}
 
