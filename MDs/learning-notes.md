@@ -149,7 +149,7 @@ We are requested to create a **Helm Chart** for our Kubernetes application, set 
     Instead of installing uv, I copy uv binaries into the image
     ([uv Docks](https://docs.astral.sh/uv/guides/integration/docker/#installing-uv))
     ```Dockerfile
-    COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+    COPY --from=ghcr.io/astral-sh/uv:0.11.18 /uv /uvx /bin/
     WORKDIR /app
     COPY ./uv.lock .
     ```
