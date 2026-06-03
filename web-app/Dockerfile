@@ -1,5 +1,5 @@
 FROM python:3.14.3-alpine3.23 AS build
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.11.18 /uv /uvx /bin/
 WORKDIR /app
 COPY ./uv.lock .
 RUN echo -e '[tool.uv.workspace]\nmembers = ["web-app"]' > pyproject.toml
