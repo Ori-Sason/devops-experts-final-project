@@ -20,7 +20,15 @@ pipeline {
 
         stage('checkout') {
             steps {
-                checkout scm
+                checkout([
+                    $class: 'GitSCM',
+                    branches: scm.branches,
+                    extensions: [
+                        [$class: 'WipeWorkspace'],      // Completely wipes the workspace before cloning
+                        [$class: 'CleanBeforeCheckout'] // Cleans up untracked files/submodules
+                    ],
+                    userRemoteConfigs: scm.userRemoteConfigs
+                ])
             }
         }
 
