@@ -6,7 +6,7 @@ metadata:
     {{- include "visit-counter.labels" . | nindent 4 }}
     {{- include "visit-counter.selectorLabels" (list . "web-app") | nindent 4 }}
 spec:
-  type: LoadBalancer
+  type: {{ .Values.web.service.type }}
   selector:
     {{- include "visit-counter.selectorLabels" (list . "web-app") | nindent 4 }}
   ports:
