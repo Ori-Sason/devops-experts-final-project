@@ -191,6 +191,10 @@ pipeline {
                 }
 
                 stage('helm-chart: test') {
+                    options {
+                        timeout(time: 5, unit: 'MINUTES')
+                    }
+
                     steps {
                         echo 'Testing Helm chart...'
                         sh """
