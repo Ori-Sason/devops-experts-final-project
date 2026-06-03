@@ -76,11 +76,15 @@ Volume & bind mounts:
       Minikube binds to a **randomized** high-port on the host machine upon startup.  
       We need to target that process running on the host machine. In Docker, we refer to the host machine by using `host.docker.internal` (like we use `localhost` in many cases).  
       So, the result of the `sed` change is `clusters[0].server: https://host.docker.internal:63726`.
-    * Lastly, we remove `certificate-authority-data` and set `insecure-skip-tls-verify` to `true`
-      * `certificate-authority-data` is a base64-encoded copy of our cluster’s root certificate (CA).
-        It acts like a digital passport verification. When our client (like `kubectl` or `helm`) talks to the cluster, it uses this certificate data to verify that the server is authentic and not an attacker trying to intercept your traffic.
+    * Lastly, we remove `certificate-authority-data` and inject `insecure-skip-tls-verify: true`
+      * `certificate-authority-data` is a base64-encoded copy of our cluster’s root certificate (CA).  
+        It acts like a digital passport verification. When our client (like `kubectl` or `helm`) talks to the cluster, it uses this certificate data to verify that the server is authentic and not an attacker trying to intercept our traffic.  
+        We must remove this line because we route our traffic through `host.docker.internal`, which does not match the hardcoded domain names (`minikube`, `localhost`) embedded inside Minikube's certificate.
       * `insecure-skip-tls-verify: true` tells our client to completely bypass all SSL/TLS certificate validations.  
-        It shuts off the security alarm. The client will happily connect to any server at that IP address, completely ignoring whether the certificate is expired, missing, or issued to a different domain name (which is exactly what allowed our traffic to pass through to `host.docker.internal`).
+        It shuts off the security alarm. The client will happily connect to any server at that IP address, completely ignoring whether the certificate is expired, missing, or issued to a different domain name (which is exactly what allowed our traffic to pass through to `host.docker.internal`).  
+
+      Bypassing TLS validation is perfectly acceptable for a local development or testing sandbox like Minikube. In a production environment, our CI/CD runners would authenticate directly against a live cluster using legitimate, unmanipulated kubeconfig credentials.
+
     Now, we have an updated minified `kube` config file to run our Helm tests.
   * Helm tests  
     To validate our Helm chart deployments before touching any production workloads, we spin up an isolated, short-lived environment:

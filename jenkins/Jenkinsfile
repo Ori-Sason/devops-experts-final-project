@@ -186,7 +186,7 @@ pipeline {
 
                             # 6. This tells the kubeconfig itself to trust the connection (since we didn't move other certificates)
                             sed -i '/certificate-authority-data/d' ${CI_KUBE}
-                            sed -i '/server: https/a \\    insecure-skip-tls-verify: true' ${CI_KUBE}
+                            yq -i '.clusters[0].cluster["insecure-skip-tls-verify"] = true' ${CI_KUBE}
                         '''
                     }
                 }

@@ -3,7 +3,7 @@
   To run it locally, run `jenkins/docker-compose.yaml` file:
   * On MacOS / Linux:
     ```bash
-    DOCKER_GID=$(stat -f "%g" /var/run/docker.sock) docker compose up -d  
+    DOCKER_GID=$(stat -f "%g" /var/run/docker.sock) docker compose -f .\jenkins\docker-compose.yaml up -d  
     ```
     In Linux, replace `-f` with `-c`.
   * On Windows (assuming you run Docker on WSL2):  
@@ -58,7 +58,7 @@ To solve that I've used the host machine Daemon.
         - "${DOCKER_GID}"
     ```
     ```bash
-    `DOCKER_GID=$(stat -f "%g" /var/run/docker.sock) docker compose up -d`
+    `DOCKER_GID=$(stat -f "%g" /var/run/docker.sock) docker compose -f .\jenkins\docker-compose.yaml up -d`
     ```
 
 * We talked about MacOS and Linux, but why we use group `0` (root) on **Windows WSL2**?  
@@ -133,7 +133,7 @@ Now, whenever you execute a `docker` CLI command inside the Jenkins container, t
 It's a tradeoff between security and performance.  
 With the side-car pattern, if an attacker compromises your Jenkins instance, the blast radius is contained. They can only manipulate the isolated sidecar container; they cannot escape onto the physical host machine.
 
-However, using DinD approach can hurt the performance.
+However, using DinD approach can hurt the performance. The overhead comes from nested layering — Docker commands inside Jenkins are hitting a containerized daemon, which itself runs inside Docker, adding virtualization overhead.
 
 
 ## From Claude - 2 more approaches and a summary
