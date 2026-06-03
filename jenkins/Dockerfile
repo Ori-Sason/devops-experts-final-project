@@ -1,9 +1,9 @@
-# Stage 1: download and install Docker, kubectl and Helm Charts
+# Stage 1: download and install Docker, kubectl and Helm CLI binary
 FROM alpine:3.19 AS downloader
-RUN apk add --no-cache curl jq
+RUN apk add --no-cache curl
 RUN DOCKER_VERSION="29.5.2" && \
     curl -fsSL "https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz" | tar -xz -C /tmp
-RUN KUBECTL_VERSION=$(curl -L -s https://dl.k8s.io/release/stable.txt) && \
+RUN KUBECTL_VERSION="v1.36.1" && \
     curl -Lo /tmp/kubectl "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" && \
     chmod +x /tmp/kubectl
 RUN curl -fsSL https://get.helm.sh/helm-v3.21.0-linux-amd64.tar.gz | tar -xz -C /tmp
@@ -15,7 +15,6 @@ RUN YQ_VERSION="v4.53.2" && \
 # Stage 2: Final Jenkins Image
 FROM jenkins/jenkins:lts-jdk21
 USER root
-RUN groupadd -g 999 docker && usermod -aG docker jenkins
 
 COPY --from=downloader /tmp/docker/docker /usr/local/bin/docker
 COPY --from=downloader /tmp/kubectl /usr/local/bin/kubectl
