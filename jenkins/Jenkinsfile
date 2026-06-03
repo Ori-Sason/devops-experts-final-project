@@ -195,15 +195,19 @@ pipeline {
                     steps {
                         echo 'Testing Helm chart...'
                         sh """
+                            # Wait up to 3 minutes for the installation and all pods to be fully ready
                             KUBECONFIG=${CI_KUBE} helm install ${TEST_HELM_CHART_NAME} ./helm-chart \
                                 -f ./helm-chart/values-test.yaml \
                                 --namespace ${TEST_NS} \
                                 --create-namespace \
                                 --set web.image.tag=${RELEASE_VERSION} \
-                                --set currentNamespace=${TEST_NS}
+                                --set currentNamespace=${TEST_NS} \
+                                --wait \
+                                --timeout 3m
 
                             KUBECONFIG=${CI_KUBE} helm test ${TEST_HELM_CHART_NAME} \
                                 --namespace ${TEST_NS}
+                                --logs
                         """
                     }
 
