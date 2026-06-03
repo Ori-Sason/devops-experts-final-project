@@ -1,0 +1,275 @@
+properties([
+    parameters([
+        booleanParam(name: 'FORCE_WEB_APP', defaultValue: false, description: 'Force web-app stage' ),
+        booleanParam(name: 'FORCE_HELM', defaultValue: false, description: 'Force helm-chart stage')
+    ])
+])
+
+pipeline {
+    agent any
+
+    environment {
+        WEB_APP_BUILT = 'false'
+        RELEASE_VERSION = "${new java.text.SimpleDateFormat('yyyyMMdd-HHmmss').format(new Date())}-${BUILD_NUMBER}"
+        CI_KUBE = '.kube_ci/config'
+        TEST_NS = "test-${RELEASE_VERSION}"
+        TEST_HELM_CHART_NAME = "test-${BUILD_NUMBER}"
+    }
+
+    stages {
+
+        stage('checkout') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: scm.branches,
+                    extensions: [
+                        [$class: 'WipeWorkspace'],      // Completely wipes the workspace before cloning
+                        [$class: 'CleanBeforeCheckout'] // Cleans up untracked files/submodules
+                    ],
+                    userRemoteConfigs: scm.userRemoteConfigs
+                ])
+            }
+        }
+
+        stage('web-app') {
+            when {
+                anyOf {
+                    expression { params.FORCE_WEB_APP == true }
+                    changeset 'web-app/**'
+                }
+            }
+
+            environment {
+                // 1. Force uv to install inside the visible workspace
+                UV_INSTALL_DIR  = "${WORKSPACE}/.uv-bin"
+                // 2. Add uv-bin and /usr/local/bin (where Helm lives) to the execution PATH
+                PATH = "${WORKSPACE}/.uv-bin:/usr/local/bin:${env.PATH}"
+
+                IMAGE_NAME = "orisason1/devops-experts-final-project-jenkins"  // Change if necessary
+            }
+
+            stages {
+                stage ('web-app: install and run uv'){
+                    steps {
+                        sh '''
+                            if ! command -v uv >/dev/null 2>&1; then
+                                curl -LsSf https://astral.sh/uv/install.sh | sh
+                            fi
+
+                            uv --version
+                            uv sync --package web-app
+                            uv add ruff coverage bandit
+                        '''
+                    }
+                }
+
+                stage('web-app: lint & bandit') {
+                    steps {
+                        dir('web-app') {
+                            echo 'Running lint test using Ruff'
+                            sh 'uv run ruff check .'
+
+                            echo 'Check for security flaws using bandit'
+                            sh 'uv run bandit -r .'
+                        }
+                    }
+                }
+
+                stage('web-app: test') {
+                    steps {
+                        dir('web-app') {
+                            echo 'Running web-app tests...'
+                            sh '''
+                                uv run coverage run -m unittest discover -s tests
+                                uv run coverage report --fail-under=75
+                            '''
+                        }
+                    }
+                }
+
+                stage('web-app: build & push') {
+                    steps {
+                        echo 'Building and pushing Docker image...'
+
+                        script {
+                            def fullImageName = "${IMAGE_NAME}:${RELEASE_VERSION}"
+
+                            try {
+                                dockerImage = docker.build(fullImageName, "-f ./web-app/Dockerfile .")
+
+                                docker.withRegistry('', 'docker-hub') {
+                                    dockerImage.push("${RELEASE_VERSION}")
+                                    dockerImage.push('latest')
+                                }
+                            } finally {
+                                sh "docker rmi ${fullImageName} || true"
+                                sh "docker rmi ${IMAGE_NAME}:latest || true"
+                            }
+                        }
+                    }
+                }
+            }
+
+            post {
+                always {
+                    sh '''
+                        git reset --hard HEAD
+                        git clean -fdx
+                    '''
+                }
+                success {
+                    echo 'web-app stage completed successfully'
+                    script {
+                        WEB_APP_BUILT = 'true'
+                    }
+                }
+            }
+        }
+
+        stage('helm-chart') {
+            when {
+                anyOf {
+                    expression { WEB_APP_BUILT == 'true' }
+                    expression { params.FORCE_HELM == true }
+                    changeset 'helm-chart/**'
+                }
+            }
+
+            stages {
+
+                stage('helm-chart: lint') {
+                    steps {
+                        dir('helm-chart'){
+                            echo 'Linting Helm chart...'
+                            sh 'helm lint .'
+                        }
+                    }
+                }
+
+                stage('helm-chart: configure Kubeconfig') {
+                    steps {
+                        sh '''
+                            # PRE-VALIDATION: Check the original config before touching anything
+                            # We look at the source config to ensure 'minikube' is the active context.
+                            ORIGINAL_CONTEXT=$(KUBECONFIG=/var/jenkins_home/.kube/config kubectl config current-context)
+
+                            if [ "${ORIGINAL_CONTEXT}" != "minikube" ]; then
+                                echo "CRITICAL ERROR: Source Kubeconfig is NOT set to 'minikube'! (Found: '${ORIGINAL_CONTEXT}')"
+                                echo "Aborting immediately to avoid redundant processing or wrong deployment."
+                                exit 1
+                            fi
+
+                            echo "Source context verified as 'minikube'. Proceeding with configuration..."
+
+                            # 1. Create a directory for the containerized kubectl to use
+                            mkdir -p .kube_ci
+                            cp /var/jenkins_home/.kube/config ${CI_KUBE}
+
+                            # 2. Dynamically replace any host path leading up to .minikube with the Linux container mount path
+                            # This looks for anything matching '.../.minikube' (including Windows backslashes) and swaps it
+                            sed -i -E 's|[^ ]+(\\|/)\\.minikube|/var/jenkins_home/.minikube|g' ${CI_KUBE}
+
+                            # 3. Convert remaining Windows backslashes to Linux forward slashes for the subfolders
+                            sed -i 's|\\\\|/|g' ${CI_KUBE}
+
+                            # 4. Bake certificates inline to create a self-contained, zero-dependency config.
+                            # This strips out irrelevant contexts (--minify) and converts external file paths
+                            # into embedded base64 strings (--flatten) so subsequent stages don't rely on host mounts.
+                            KUBECONFIG=${CI_KUBE} kubectl config view --flatten --minify > .kube_ci/config-portable
+                            mv .kube_ci/config-portable ${CI_KUBE}
+
+                            # 5. Use sed to replace 127.0.0.1 with host.docker.internal
+                            # This looks for the 'server:' line and swaps the IP, keeping the original port
+                            # i flag on sed saves the file
+                            sed -i 's/127.0.0.1/host.docker.internal/g' ${CI_KUBE}
+
+                            # 6. This tells the kubeconfig itself to trust the connection (since we didn't move other certificates)
+                            sed -i '/certificate-authority-data/d' ${CI_KUBE}
+                            yq -i '.clusters[0].cluster["insecure-skip-tls-verify"] = true' ${CI_KUBE}
+                        '''
+                    }
+                }
+
+                stage('helm-chart: test') {
+                    steps {
+                        echo 'Testing Helm chart...'
+                        sh """
+                            KUBECONFIG=${CI_KUBE} helm install ${TEST_HELM_CHART_NAME} ./helm-chart \
+                                -f ./helm-chart/values-test.yaml \
+                                --namespace ${TEST_NS} \
+                                --create-namespace \
+                                --set web.image.tag=${RELEASE_VERSION} \
+                                --set currentNamespace=${TEST_NS}
+
+                            KUBECONFIG=${CI_KUBE} helm test ${TEST_HELM_CHART_NAME} \
+                                --namespace ${TEST_NS}
+                        """
+                    }
+
+                    post {
+                        always {
+                            echo 'Cleaning up environment...'
+                            sh """
+                                KUBECONFIG=${CI_KUBE} helm uninstall ${TEST_HELM_CHART_NAME} --namespace ${TEST_NS}
+                                KUBECONFIG=${CI_KUBE} kubectl delete namespace ${TEST_NS} --wait=false || true
+                                rm -rf .kube_ci
+                            """
+                        }
+                    }
+                }
+
+                stage('helm-chart: package and deploy') {
+                    steps {
+                        dir('helm-chart') {
+                            echo "Updating values.yaml with image tag ${RELEASE_VERSION} and Chart version"
+                            sh """
+                                yq -i '.web.image.tag = \"${RELEASE_VERSION}\"' values-test.yaml
+                                yq -i '.version = \"0.1.${RELEASE_VERSION.replace('-', '')}\"' Chart.yaml
+                            """
+
+                            echo 'Package chart from main branch to a temporary outside folder'
+                            sh 'helm package ./ --destination /tmp/charts'
+                            sh 'git reset --hard HEAD'
+                        }
+
+                        withCredentials([usernamePassword(
+                            credentialsId: scm.userRemoteConfigs[0].credentialsId,
+                            usernameVariable: 'GIT_USER',
+                            passwordVariable: 'GIT_TOKEN'
+                        )]) {
+                            sh """
+                                # wire withCredentials to the remote URL
+                                git remote set-url origin https://\$GIT_USER:\$GIT_TOKEN@${scm.userRemoteConfigs[0].url.replaceFirst('https://', '')}
+
+                                git switch helm-publish
+
+                                mv /tmp/charts/*.tgz .
+                                helm repo index . --merge index.yaml
+
+                                git add .
+                                git commit -m "jenkins: automated helm release"
+                                git push origin helm-publish
+                            """
+                        }
+                    }
+                }
+
+                stage('helm-chart: install on production'){
+                    steps {
+                        echo 'Installing on production cluster'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline complete.'
+        }
+        failure {
+            echo 'Pipeline failed.'
+        }
+    }
+}

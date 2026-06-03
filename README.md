@@ -5,16 +5,17 @@ This is the final project for the DevOps Experts program. I update it regularly 
 I've noted my technical decisions and learning process in [learning-notes.md](./MDs/learning-notes.md).
 
 ## Features
-* Web app with 2 web pages: */* and */visits*.
-* */visits* page shows a count of logging into the different pages of the app.
-* For DB, I use PostgreSQL container, which stores on a Docker named volume (on local deployment) or on Kubernetes hostPath (on K8s deployment).
+* Python/Flask web app: a lightweight application featuring two primary endpoints (`/` and `/visits`).
+* Traffic tracking: the `/visits` route dynamically displays access counts across the application.
+* Persistent Database: Utilizes a containerized PostgreSQL database. Data is persisted via Docker named volumes (for local Compose deployments) and Kubernetes `hostPath` volumes (for Minikube deployments).
 * Dockerized: easily containerized for streamlined deployment.
-* Kubernetes cluster deployed locally on Minikube (using Helm Charts).
-* Support HPA - Horizontal Pod Autoscaling (check out [HPA.md](./MDs/HPA.md))
-* Traffic cronjob - creates synthetic traffic to the application (check out [traffic-cronjob.md](./MDs/traffic-cronjob.md))
-* Chart is published on GitHub Pages.
+* Kubernetes orchestration: local cluster deployment managed via Minikube and Helm Charts.
+* Scalability: supports Horizontal Pod Autoscaling (HPA) based on resource utilization (see [HPA.md](./MDs/HPA.md)).
+* Load simulation: includes a Kubernetes CronJob designed to generate synthetic traffic to the application (see [traffic-cronjob.md](./MDs/traffic-cronjob.md)).
+* Helm Chart is published on GitHub Pages.
+* CI/CD automation: A fully declarative Jenkins pipeline automatically tests, builds, and publishes both the web application Docker image and the Helm Chart (hosted on GitHub Pages).
 
-# Web App
+## Web App
 <div align="center">
   <img src="./MDs/images/web-app.png" alt="Web app UI" width="600"/>
 </div>
@@ -22,11 +23,12 @@ I've noted my technical decisions and learning process in [learning-notes.md](./
 ## Project structure
 ```
 helm-chart
-MDs                     # Notes
-web-app                 # Web app project
+jenkins
+MDs                     # Architectural notes and documentation
+web-app                 # Web app application source code
 ├───docker-compose.yml
 ├───Dockerfile  
-├───pyproject.toml      # Python dependencies
+├───pyproject.toml      # Python dependencies (uv)
 ├───env
 ├───src
 │   ├───app.py          # Application entry point
@@ -35,7 +37,7 @@ web-app                 # Web app project
 │   │   ├───css
 │   │   └───images  
 │   └───templates       # Jinja2 HTML templates (pages)
-└───tests               # tests files using unittest
+└───tests               # Unit tests using Python's unittest module
 ```
 * Mentioned only relevant files
 
@@ -48,45 +50,60 @@ web-app                 # Web app project
 
 ### Requirements
 1. Docker Desktop ([Installation](https://docs.docker.com/desktop/) - look for `Install Docker Desktop`).
-2. Minikube (local Kubernetes for learning purposes) ([Installation](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fwindows%2Fx86-64%2Fstable%2Fchocolatey)).
-3. Helm Charts ([Installation](https://helm.sh/docs/intro/install/))
+2. Minikube for local Kubernetes orchestration (mainly for learning purpose) ([Installation](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fwindows%2Fx86-64%2Fstable%2Fchocolatey)).
+3. Helm for kubernetes package management ([Installation](https://helm.sh/docs/intro/install/))
 
 ### Running the application locally using Docker Compose
-
+To spin up the application and database locally
 ```bash
 docker compose -f ./web-app/docker-compose.yml --project-directory . up
 ```
 
-Go to http://localhost/
+Access the application at http://localhost/.
 
-Once finished, run the following to shut down the app
+To safely shut down the environment
 ```bash
 docker compose -f ./web-app/docker-compose.yml --project-directory . down
 ```
 
-The DB will be stored for next runs on a named volume.
-In case you want to completely remove the application, including the DB volume (DB data will be lost), add `-v` flag in the end of the command.
+**Note:** The PostgreSQL database state will be preserved in a named volume for future runs. To completely destroy the application and wipe the database volume, append the -v flag to the down command.
 
-* To keep things simple, I didn't add `.env` files to `.gitignore` (or ConfigMap / Secret on K8s).
-  On a real project, `.env` files shouldn't be uploaded to GitHub.
+**Security Note:** To keep this local learning environment simple, .env files have not been added to .gitignore. In a production environment, hardcoded secrets are strictly prohibited and would be managed securely via Kubernetes ConfigMaps/Secrets or an external secret manager like AWS Secrets Manager or HashiCorp Vault.
 
 ### Running the application on Kubernetes Minikube
 
-Make sure Minikube is up an running by running `minikube status`.
-If it's not, run `minikube start`.
+Ensure Minikube is active by running `minikube status`.
+If it is stopped, initialize it buy running `minikube start`.
 
-To run the application
+Deploy the application using the local Helm chart:
 ```bash
-helm install app ./helm-chart/  # app is the release name, which is dynamic
+helm install app ./helm-chart/  # 'app' is a dynamic release name
 ```
 
-Next, we need Minikube to expose the web service to our host machine
+To expose the web service from the Minikube cluster to your host machine:
 ```bash
 minikube service visit-counter-dev-web-app-svc
 ```
-
-This will open a tab on your browser showing the web app.
+This command will automatically open the application in your default web browser.
 
 To shut down the application:
-1. Stop the process of `minikube service visit-counter-dev-web-app-svc`.
-2. `helm uninstall app`
+1. Terminate the active Minikube service process in your terminal (Ctrl+C).
+2. Uninstall helm release by running `helm uninstall app`.
+
+### Running Jenkins
+To run Jenkins container, follow the instructions in [running-jenkins.md](./MDs/running-jenkins.md).  
+A deep dive into the pipeline design and execution logic can be found in [jenkins-notes.md](./MDs/jenkins-notes.md).
+
+## Helm Chart
+The application's Helm Chart is automatically packaged and published to GitHub Pages via the Jenkins pipeline (available on [`helm-publish`](https://github.com/Ori-Sason/devops-experts-final-project/tree/helm-publish) branch).
+
+You can add this repository and deploy it to any cluster:
+```bash
+helm repo add myrepo https://ori-sason.github.io/devops-experts-final-project/
+helm install <custom name> myrepo/visit-counter
+```
+
+To download and inspect the chart files locally without installing:
+```bash
+helm pull myrepo/visit-counter --untar
+```

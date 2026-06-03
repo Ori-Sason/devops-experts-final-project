@@ -1,0 +1,13 @@
+global:
+  stage: test
+
+web:
+  replicas: 1
+  image:
+    tag: v4
+
+autoscaling:
+  enabled: false
+
+syntheticTraffic:
+  enabled: false

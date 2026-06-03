@@ -4,4 +4,4 @@ metadata:
   name: {{ include "visit-counter.componentName" (list . "web-app-configmap") }}
 data:
   WEB_APP_PORT: "5000"
-  DB_HOST: {{ include "visit-counter.componentName" (list . "web-db-svc") }}.default
+  DB_HOST: '{{ include "visit-counter.componentName" (list . "web-db-svc") }}.{{ .Values.currentNamespace | default "default" }}'
