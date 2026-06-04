@@ -89,11 +89,13 @@ Volume & bind mounts:
   * Helm tests  
     To validate our Helm chart deployments before touching any production workloads, we spin up an isolated, short-lived environment:
     * Ephemeral Testing Namespace  
-    We install the updated Helm chart into a dedicated testing namespace (`${TEST_NS}`). In a production-grade CI/CD architecture, this sandbox cluster typically mirrors core infrastructure components with **minimized** resource limits.
+      We install the updated Helm chart into a dedicated testing namespace (`${TEST_NS}`). In a production-grade CI/CD architecture, this sandbox cluster typically mirrors core infrastructure components with **minimized** resource limits.  
+
+      The Helm test stage uses `web.image.tag=latest` because the pipeline allows running the Helm stage independently of the web-app build stage. Since our standard images are tagged dynamically by build date, skipping the build stage means we don't have a unique tag for the current run. Using `latest` ensures Helm can always pull the most recent image from Docker Hub. This acts as a pragmatic 'quick win' to keep the pipeline decoupled without over-engineering a version-tracking system.
     * Automated Verification  
-    We run `helm test`, which spins up a dedicated test runner pod inside that namespace to execute validation scripts against our freshly deployed application components. Once finished, it turns its status to `Completed`.
+      We run `helm test`, which spins up a dedicated test runner pod inside that namespace to execute validation scripts against our freshly deployed application components. Once finished, it turns its status to `Completed`.
     * Bulletproof Teardown  
-    Once testing concludes, the environment must be completely purged. This cleanup is wrapped in a Jenkins `post { always { ... } }` block to guarantee it executes even if the tests fail. The teardown uses two phases:
+      Once testing concludes, the environment must be completely purged. This cleanup is wrapped in a Jenkins `post { always { ... } }` block to guarantee it executes even if the tests fail. The teardown uses two phases:
         * `helm uninstall` removes the chart release tracking history from the cluster.
         * `kubectl delete namespace` nukes the entire testing sandbox. In Kubernetes, deleting a namespace triggers a cascading deletion, meaning the cluster automatically sweeps through and destroys absolutely every resource tied to it—including application pods, configurations, secrets, and the lingering `Completed` test runner pods—all in a single background operation (`--wait=false`)
   * Deploy & Upgrade Helm
