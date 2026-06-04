@@ -19,7 +19,7 @@ pipeline {
 
     stages {
 
-        stage('checkout') {
+        stage('checkout & gitleaks') {
             steps {
                 checkout([
                     $class: 'GitSCM',
@@ -30,6 +30,8 @@ pipeline {
                     ],
                     userRemoteConfigs: scm.userRemoteConfigs
                 ])
+
+                sh 'gitleaks detect --config=.gitleaks.toml --verbose --log-level=debug'
             }
         }
 
