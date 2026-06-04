@@ -5,6 +5,8 @@ web:
   replicas: 1
   image:
     tag: v4
+  service:
+    type: ClusterIP
 
 autoscaling:
   enabled: false

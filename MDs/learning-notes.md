@@ -203,3 +203,9 @@ We are requested to create a **Helm Chart** for our Kubernetes application, set 
     ```  
     Note: Replace `install my-release` with `pull` to download the chart compressed file, without deploying it to the cluster.
 * Notes related to Jenkins can be found in [jenkins-notes.md](./MDs/jenkins-notes.md) and [running-jenkins.md](./running-jenkins.md).
+* Helm test
+  * `wget -T 5 -t 3 <URL>` - try 3 times with a 5-second timeout before giving up.
+  * I've set the `web-app` service type to `ClusterIP` instead of `LoadBalancer` in `values-test.yaml`.  
+    The reason for this is that when a `LoadBalancer` service is created in Minikube, its `EXTERNAL-IP` status remains stuck as `<pending>` by default. In the [Jenkinsfile](/jenkins/Jenkinsfile) `helm-chart: test` stage, I install the Helm chart on the cluster before running the connection tests. Since it takes time for the database and application pods to spin up, I use the `--wait` flag in the `helm install` command. One of the requirements for Helm to consider a `LoadBalancer` service 'ready' (and thus stop waiting) is for its `EXTERNAL-IP` to be provisioned with a real IP or hostname. Because Minikube lacks a cloud controller to assign external IPs natively, Helm never receives this status update inside the isolated Jenkins container network environment (`EXTERNAL-IP` as `<pending>`). As a result, the pipeline blocks on the `helm install` command until it hits the timeout.  
+    Switching the service type to `ClusterIP` for the test environment seamlessly resolves this, as Helm no longer expects an external IP address.  
+    If I were deploying this to a live cloud infrastructure provider (like AWS or GCP), an external load balancer IP would be provisioned automatically, and the command would succeed without getting stuck.

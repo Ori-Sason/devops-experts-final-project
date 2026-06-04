@@ -14,6 +14,7 @@ pipeline {
         CI_KUBE = '.kube_ci/config'
         TEST_NS = "test-${RELEASE_VERSION}"
         TEST_HELM_CHART_NAME = "test-${BUILD_NUMBER}"
+        IMAGE_NAME = "orisason1/devops-experts-final-project-jenkins"  // Change if necessary
     }
 
     stages {
@@ -45,8 +46,6 @@ pipeline {
                 UV_INSTALL_DIR  = "${WORKSPACE}/.uv-bin"
                 // 2. Add uv-bin and /usr/local/bin (where Helm lives) to the execution PATH
                 PATH = "${WORKSPACE}/.uv-bin:/usr/local/bin:${env.PATH}"
-
-                IMAGE_NAME = "orisason1/devops-experts-final-project-jenkins"  // Change if necessary
             }
 
             stages {
@@ -192,18 +191,27 @@ pipeline {
                 }
 
                 stage('helm-chart: test') {
+                    options {
+                        timeout(time: 5, unit: 'MINUTES')
+                    }
+
                     steps {
                         echo 'Testing Helm chart...'
                         sh """
+                            # Wait up to 3 minutes for the installation and all pods to be fully ready
                             KUBECONFIG=${CI_KUBE} helm install ${TEST_HELM_CHART_NAME} ./helm-chart \
                                 -f ./helm-chart/values-test.yaml \
                                 --namespace ${TEST_NS} \
                                 --create-namespace \
-                                --set web.image.tag=${RELEASE_VERSION} \
-                                --set currentNamespace=${TEST_NS}
+                                --set web.image.repository=${IMAGE_NAME} \
+                                --set web.image.tag=latest \
+                                --set currentNamespace=${TEST_NS} \
+                                --wait \
+                                --timeout 3m
 
                             KUBECONFIG=${CI_KUBE} helm test ${TEST_HELM_CHART_NAME} \
-                                --namespace ${TEST_NS}
+                                --namespace ${TEST_NS} \
+                                --logs
                         """
                     }
 

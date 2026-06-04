@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "visit-counter.componentName" (list . "web-app") }}-test-connection"
+  labels:
+    {{- include "visit-counter.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['-T', '5', '-t', '3', '{{ include "visit-counter.componentName" (list . "web-app-svc") }}:{{ .Values.web.service.port }}']
+  restartPolicy: Never

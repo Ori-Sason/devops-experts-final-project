@@ -7,6 +7,7 @@ web:
     repository: orisason1/devops-experts-final-project
     tag: v4
   service:
+    type: LoadBalancer
     port: 80
     portName: web-app-http
 db:
