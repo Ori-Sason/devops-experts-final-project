@@ -6,7 +6,6 @@ useDefault = true
 
 [allowlist]
 paths = [
-    '''.*configmap\.ya?ml$''',
     '''.*secret\.ya?ml$''',
     '''.*\.env$'''
 ]
