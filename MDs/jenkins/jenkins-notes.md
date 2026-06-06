@@ -36,17 +36,14 @@ Volume & bind mounts:
 * Gitleaks  
 We use a local `pre-commit` hook to catch secrets before they leave a developer's machine. However, client-side hooks cannot be enforced in a production environment since an employee can easily alter or bypass their local Git hooks. To guarantee security compliance, we run Gitleaks as a mandatory, un-bypassable step inside our Jenkins CI/CD pipeline using the following command:
   ```bash
-  gitleaks detect --config=.gitleaks.toml --verbose --log-level=debug
+  gitleaks detect --verbose --log-level=debug --redact
   ```
   * By default, the `gitleaks detect` command walks the entire Git history of the repository (automatically appending the native `--full-history --all` Git flags under the hood).  
 
     Normally, scanning the entire history repeatedly is inefficient; pipelines should ideally only scan the delta of the current Pull Request (PR). However, because our Jenkins instance is deployed locally, we cannot receive incoming GitHub Webhook event triggers when a PR is opened or updated. Because Jenkins cannot reliably isolate PR commit boundaries post-merge (we would get `0 commits scanned`), scanning the entire repository history is our most secure fallback option. Given the small scale of this project, the historical scan finishes in milliseconds.
 
-  * Our project contains infrastructure configurations (such as `/helm-chart/db-secret.yaml` and files inside the `/web-app/env/` folder) that contain required test secrets. To manage this safely, we use a distinct file named `.jenkins-gitleaks.toml` exclusively for our CI pipeline.
-
-    By passing this custom file to Jenkins, the pipeline explicitly skips these infrastructure paths.
-    By default, Gitleaks looks for `.gitleaks.toml` file. Since I didn't want to affect the local `pre-commit` hook, I've given it a different name and referred to it in the command. This intentional isolation ensures that I'm still strictly warned about secrets locally, while bypassing alerts on Jenkins.
-
+  * Our project contains infrastructure configurations (such as `/helm-chart/db-secret.yaml` and files inside the `/web-app/env/` folder) that contain required test secrets. I've explained that I keep these "secrets" in the code to keep  local learning environment simple [README.MD](/README.md/#running-the-application-locally-using-docker-compose).
+    Gitleaks detects this file by a certain commit, so I've added it to `.gitleaksignore` list.
   * Other flags used  
     * `--verbose` / `-v`: overrides the default quiet scan. It prints the full findings and lets you see exactly which line triggered the alert and why.
     * `--log-level=debug`: Outputs granular engine traces to the Jenkins console. This exposes rule compilation, decoding attempts, and skipped commits, which is vital for troubleshooting pipeline executions.

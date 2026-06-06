@@ -31,7 +31,7 @@ pipeline {
                     userRemoteConfigs: scm.userRemoteConfigs
                 ])
 
-                sh 'gitleaks detect --config=.jenkins-gitleaks.toml --verbose --log-level=debug --redact'
+                sh 'gitleaks detect --verbose --log-level=debug --redact'
             }
         }
 
