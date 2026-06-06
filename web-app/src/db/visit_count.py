@@ -7,14 +7,20 @@ def increment_visit(page_path):
     try:
         with get_connection() as conn:
             cursor = get_cursor()
-            query = sql.SQL("SELECT count FROM visits WHERE path = {page_path}").format(page_path=sql.Literal(page_path))
+            query = sql.SQL("SELECT count FROM visits WHERE path = {page_path}").format(
+                page_path=sql.Literal(page_path)
+            )
             cursor.execute(query)
             row = cursor.fetchone()
 
             if row:
-                query = sql.SQL("UPDATE visits SET count = count + 1 WHERE path = {page_path}").format(page_path=sql.Literal(page_path))
+                query = sql.SQL(
+                    "UPDATE visits SET count = count + 1 WHERE path = {page_path}"
+                ).format(page_path=sql.Literal(page_path))
             else:
-                query = sql.SQL("INSERT INTO visits (path, count) VALUES ({page_path}, 1)").format(page_path=sql.Literal(page_path))
+                query = sql.SQL(
+                    "INSERT INTO visits (path, count) VALUES ({page_path}, 1)"
+                ).format(page_path=sql.Literal(page_path))
 
             cursor.execute(query)
             conn.commit()
@@ -22,6 +28,7 @@ def increment_visit(page_path):
     except psycopg2.Error as e:
         print("Database error on increment_visit:\n")
         print(f" {e}:\n")
+
 
 def get_visits():
     try:
@@ -39,7 +46,6 @@ def get_visits():
             visits = [dict(row) for row in rows]
 
             return visits
-
 
     except psycopg2.Error as e:
         print("Database error on get_visits:\n")

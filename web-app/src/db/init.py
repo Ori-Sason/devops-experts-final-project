@@ -4,21 +4,23 @@ from psycopg2 import sql
 from psycopg2.extras import RealDictCursor
 
 conn = psycopg2.connect(
-    host=os.environ['DB_HOST'],
-    database=os.environ['POSTGRES_DB'],
-    user=os.environ['POSTGRES_USER'],
-    password=os.environ['POSTGRES_PASSWORD']
+    host=os.environ["DB_HOST"],
+    database=os.environ["POSTGRES_DB"],
+    user=os.environ["POSTGRES_USER"],
+    password=os.environ["POSTGRES_PASSWORD"],
 )
+
 
 def get_connection():
     return conn
+
 
 def get_cursor():
     return conn.cursor(cursor_factory=RealDictCursor)
 
 
 def create_database_and_tables():
-    if not _is_table_exists('visits'):
+    if not _is_table_exists("visits"):
         ddl = """
             CREATE TABLE visits (
                 id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
@@ -48,7 +50,7 @@ def _is_table_exists(table_name):
     res = cursor.fetchone()
     cursor.close()
 
-    return res['exists'] is True
+    return res["exists"] is True
 
 
 create_database_and_tables()
