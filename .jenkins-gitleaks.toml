@@ -5,7 +5,9 @@ minVersion = "v8.30.1"
 useDefault = true
 
 [allowlist]
+# Bad practice. Explained in /MDs/jenkins/jenkins-notes.md
 paths = [
-    '''.*secret\.ya?ml$''',
+    '''.*db-configmap\.ya?ml$''',
+    '''.*db-secret\.ya?ml$''',
     '''.*\.env$'''
 ]

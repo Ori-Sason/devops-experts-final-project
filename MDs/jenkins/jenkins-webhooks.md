@@ -49,10 +49,7 @@
 
   ```groovy
     properties([
-        parameters([
-            booleanParam(name: 'FORCE_WEB_APP', defaultValue: false, description: 'Force web-app stage' ),
-            booleanParam(name: 'FORCE_HELM', defaultValue: false, description: 'Force helm-chart stage')
-        ]),
+        parameters([...]), // Placeholder - define parameters here
 
         pipelineTriggers([
             GenericTrigger(
@@ -62,7 +59,7 @@
                     [key: 'pr_base_sha', value: '$.pull_request.base.sha'],
                     [key: 'pr_head_sha', value: '$.pull_request.head.sha']
                 ],
-                token: 'secret-for-j3nk1ns-plugin', //token written on GitHub Settings → Webhooks
+                token: 'secret-for-j3nk1ns-plugin', // Token written on GitHub Settings → Webhooks
                 regexpFilterText: '$action $is_pr_merged',
                 regexpFilterExpression: '^(opened|reopened|synchronize) false$|^closed true$'
             )
