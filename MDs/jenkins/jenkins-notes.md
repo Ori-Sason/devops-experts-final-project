@@ -6,16 +6,17 @@ I'll describe Dockerfile, `docker-compose.yaml` file and Jenkinsfile pipeline.
 To run Jenkins - follow the instructions on [running-jenkins.md](./running-jenkins.md).
 
 ## Dockerfile
-Built upon 2 stages. At the build stage we download Docker, kubectl, Helm CLI binary and `yq` package.  
+Built upon 2 stages. At the build stage we download Docker, kubectl, Helm CLI binary, `yq` and `gitleaks` packages.  
 At the final stage we copy the binaries of the installations and configure Git username and email.
 * Docker has 2 tools inside - Docker Daemon and Docker CLI. Since we don't use Docker Daemon (the reasons for that are explained in [running-jenkins.md](./running-jenkins.md)), we only move the binaries of Docker CLI to the final stage.
-* `yq` allows parsing, filtering, and modifying YAML data. We will use it in our Docker pipeline.
+* `yq` allows parsing, filtering, and modifying YAML data.  
+  `gitleaks` scans Git repositories and code files for accidentally committed secrets like passwords, API keys, and access tokens.  
+  We will use both tools in our Jenkins pipeline.
 
 ## Docker Compose
 Volume & bind mounts:
 * `jenkins_home:/var/jenkins_home` (named volume)  
   Ensures stateful persistence for the Jenkins server. This volume preserves crucial application data - including installed plugins, credentials, pipeline definitions, and build job histories - across container restarts, updates, or removals.
-
 * `~/.kube:/var/jenkins_home/.kube:ro` (bind mount)  
   Enables `kubectl` and Helm commands running within Jenkins pipelines to communicate with a Kubernetes cluster. For local development, this mounts the host machine's active Minikube configuration.
   * This is mounted as Read-Only (`:ro`) to prevent the containerized processes from accidentally altering the host's primary configuration. We will need to modify the config file in the pipeline, so first we will copy it and manipulate the copied file using `yq`.
@@ -29,7 +30,28 @@ Volume & bind mounts:
 ## Jenkinsfile
 * Overall flow  
   <img src="../images/jenkins-workflow.png" alt="Jenkins workflow" width="600"/>
+
 * Checkout explicitly - while Jenkins pulls the repository implicitly, I preferred pulling it explicitly, so it won't look like magic.
+
+* Gitleaks  
+We use a local `pre-commit` hook to catch secrets before they leave a developer's machine. However, client-side hooks cannot be enforced in a production environment since an employee can easily alter or bypass their local Git hooks. To guarantee security compliance, we run Gitleaks as a mandatory, un-bypassable step inside our Jenkins CI/CD pipeline using the following command:
+  ```bash
+  gitleaks detect --config=.gitleaks.toml --verbose --log-level=debug
+  ```
+  * By default, the `gitleaks detect` command walks the entire Git history of the repository (automatically appending the native `--full-history --all` Git flags under the hood).  
+
+    Normally, scanning the entire history repeatedly is inefficient; pipelines should ideally only scan the delta of the current Pull Request (PR). However, because our Jenkins instance is deployed locally, we cannot receive incoming GitHub Webhook event triggers when a PR is opened or updated. Because Jenkins cannot reliably isolate PR commit boundaries post-merge (we would get `0 commits scanned`), scanning the entire repository history is our most secure fallback option. Given the small scale of this project, the historical scan finishes in milliseconds.
+
+  * Our project contains infrastructure configurations (such as `/helm-chart/db-secret.yaml` and files inside the `/web-app/env/` folder) that contain required test secrets. To manage this safely, we use a distinct file named `.jenkins-gitleaks.toml` exclusively for our CI pipeline.
+
+    By passing this custom file to Jenkins, the pipeline explicitly skips these infrastructure paths.
+    By default, Gitleaks looks for `.gitleaks.toml` file. Since I didn't want to affect the local `pre-commit` hook, I've given it a different name and referred to it in the command. This intentional isolation ensures that I'm still strictly warned about secrets locally, while bypassing alerts on Jenkins.
+
+  * Other flags used  
+    * `--verbose` / `-v`: overrides the default quiet scan. It prints the full findings and lets you see exactly which line triggered the alert and why.
+    * `--log-level=debug`: Outputs granular engine traces to the Jenkins console. This exposes rule compilation, decoding attempts, and skipped commits, which is vital for troubleshooting pipeline executions.
+    * `--redact` hides the sensitive data in case gitleaks finds it in the code.
+
 * Triggers:
   * `web-app` - handles `web-app` Python application.  
     Triggered when there was a change in `./web-app/` folder  
@@ -41,6 +63,7 @@ Volume & bind mounts:
   * I've included manual triggers in case a job fails and Jenkins does not detect a new changeset compared to the previous broken build.
     Also, I could make the job running automatically by using Poll SCM trigger, but I decided not to.
     I will consider adding a Webhook trigger if I will deploy Jenkins to AWS EC2 instance (maybe on phase 4).
+
 * `web app` stage
   * Lint & bandit
     * Linting is the automated process of scanning our source code to catch bugs, syntax errors, and stylistic inconsistencies.  
@@ -57,6 +80,7 @@ Volume & bind mounts:
     `git clean -fdx` - removed untracked files.  
     Both of these ensure that we are back to the latest commit state.
     Because we dynamically modify `pyproject.toml` at runtime using `uv add` to inject linting tools without bloating our base repository's production dependencies, a strict workspace reset is required post-execution to keep the agent clean.
+
 * `helm-chart` stage
   * `helm lint` is a built-in tool within the standard Helm CLI that examines Kubernetes charts for structural mistakes, syntax errors, and deployment best practices.
   * Configure `kube` config file  
@@ -86,6 +110,7 @@ Volume & bind mounts:
       Bypassing TLS validation is perfectly acceptable for a local development or testing sandbox like Minikube. In a production environment, our CI/CD runners would authenticate directly against a live cluster using legitimate, unmanipulated kubeconfig credentials.
 
     Now, we have an updated minified `kube` config file to run our Helm tests.
+
   * Helm tests  
     To validate our Helm chart deployments before touching any production workloads, we spin up an isolated, short-lived environment:
     * Ephemeral Testing Namespace  
@@ -98,10 +123,12 @@ Volume & bind mounts:
       Once testing concludes, the environment must be completely purged. This cleanup is wrapped in a Jenkins `post { always { ... } }` block to guarantee it executes even if the tests fail. The teardown uses two phases:
         * `helm uninstall` removes the chart release tracking history from the cluster.
         * `kubectl delete namespace` nukes the entire testing sandbox. In Kubernetes, deleting a namespace triggers a cascading deletion, meaning the cluster automatically sweeps through and destroys absolutely every resource tied to it—including application pods, configurations, secrets, and the lingering `Completed` test runner pods—all in a single background operation (`--wait=false`)
+
   * Deploy & Upgrade Helm
     * Helm Chart is published by using GitHub Pages, which is referenced to a dedicated branch ([helm-publish](https://github.com/Ori-Sason/devops-experts-final-project/tree/helm-publish)).
     * Since Jenkins updates the version, I considered committing the changes to the `main` branch as well. However, I've decided not to, since there is no version management system and I wanted to keep things simple.  
     For the same reason I'm publishing Docker images in a dedicated repository on Docker Hub, `orisason1/devops-experts-final-project-jenkins`, and not the main one, `orisason1/devops-experts-final-project`.
     * For downloading or installing the published package - check out dedicated instructions in [README.md](/README.md/#helm-chart).
+
   * Install on production - placeholder
     * In a production environment, we would execute `helm install` against the live cluster. For this local phase, that would mean redeploying the changes to the same host Minikube cluster. Since I've already manipulated Minikube cluster from Jenkins, for Helm testing, repeating that process felt redundant. So, I've decided just to keep a placeholder.
