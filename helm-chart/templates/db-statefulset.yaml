@@ -50,7 +50,7 @@ spec:
             claimName: {{ include "visit-counter.componentName" (list . "web-db-pvc") }}
       initContainers:
         - name: busybox
-          image: busybox:latest
+          image: busybox:1.37.0
           command: ["sh", "-c", "rm -rf /var/lib/postgresql/18/docker/lost+found"]
           volumeMounts:
             - mountPath: /var/lib/postgresql/18/docker

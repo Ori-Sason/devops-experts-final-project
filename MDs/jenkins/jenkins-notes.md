@@ -50,6 +50,7 @@ We use a local `pre-commit` hook to catch secrets before they leave a developer'
   * Other flags used  
     * `--verbose` / `-v`: overrides the default quiet scan. It prints the full findings and lets you see exactly which line triggered the alert and why.
     * `--log-level=debug`: Outputs granular engine traces to the Jenkins console. This exposes rule compilation, decoding attempts, and skipped commits, which is vital for troubleshooting pipeline executions.
+    * `--redact` hides the sensitive data in case gitleaks finds it in the code.
 
 * Triggers:
   * `web-app` - handles `web-app` Python application.  
