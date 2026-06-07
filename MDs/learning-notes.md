@@ -87,7 +87,7 @@ We were requested to set up a cluster using Minikube to deploy your application,
 
 ## Phase 3 - Helm Charts, Git and Jenkins
 
-End phase commit: ()[] # FIX
+End phase commit: [096fb63](https://github.com/Ori-Sason/devops-experts-final-project/tree/096fb6330e43f984a92a163ede7c6ebdfb5316cf)
 
 The objective of Phase 3 focuses on automating the deployment process and improving version control practices.  
 
