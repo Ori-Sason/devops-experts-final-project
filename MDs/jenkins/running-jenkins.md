@@ -24,7 +24,7 @@ COPY --from=downloader /tmp/docker/docker /usr/local/bin/docker
 ```  
 
 At this point, when we run Docker commands in our pipeline, they fail since there is no Docker Daemon connected.  
-To solve that I've used the host machine Daemon.
+To solve that I've used the host machine daemon.
 1. I used bind mount host's daemon into the container.  
   In Docker Compose, look for volume `/var/run/docker.sock:/var/run/docker.sock`.  
   So, the container is directed to the socket of the host's Docker Daemon.
@@ -34,10 +34,10 @@ To solve that I've used the host machine Daemon.
     ```bash
     srw-rw---- 1 root docker 0 /var/run/docker.sock
     ```
-    This means that on the host machine, `root` user and `docker` group are allowed to read and write to the daemon's socket.  
+    This means that on the host machine, `root` user and `docker` group are allowed to read and write to the demon's socket.  
     As explained before, this exact file is now in use by our Jenkins container, since we bind mount it.  
 
-    Last background point: the kernel doesn't care about the group name, it checks permissions by the group ID. To get the docker group ID we can run
+    Last background point: the kernel doesn't care about the group name, it checks permissions by the group ID. To get Docker's group ID, we can run
     ```bash
     stat -f "%g" /var/run/docker.sock # Works on MacOS. Change `-f` to `-c` on Linux
     ```
@@ -49,10 +49,10 @@ To solve that I've used the host machine Daemon.
     ```bash
     groupadd -g 998 host-docker && usermod -aG host-docker jenkins
     ```
-    Now, jenkins belongs to group `998`. So, when it asks for using `docker.sock`, the host's kernel sees that "someone" belongs to group `998` asked to use this file, and accepts the call.
+    Now, Jenkins belongs to group `998`. So, when it asks for using `docker.sock`, the host's kernel sees that "someone" belongs to group `998` asked to use this file, and accepts the call.
     So, the workaround add `jenkins` user to a group with the same ID as the one running `docker.sock` on the host machine.
 
-    To make things easy, instead of running a command on the host machine to get the docker group ID, and update `docker-compose.yaml`, we inject it into a dynamic variable in Compose file
+    To make things easy, instead of running a command on the host machine to get Docker's group ID and update `docker-compose.yaml`, we inject it into a dynamic variable in Compose file
     ```yaml
       group_add:
         - "${DOCKER_GID}"
@@ -126,26 +126,26 @@ docker run \
   --volume jenkins-docker-certs:/certs/client:ro \
   jenkins/jenkins:lts-jdk21
 ```
-By placing Jenkins on the same jenkins network and sharing the TLS certificates via a volume, the two containers can communicate securely.  
+By placing Jenkins on the same `jenkins` network and sharing the TLS certificates via a volume, the two containers can communicate securely.  
 Now, whenever you execute a `docker` CLI command inside the Jenkins container, the environment variable `DOCKER_HOST=tcp://docker:2376` forces it to route that request over a secure TCP connection straight to the sidecar's daemon instead of looking for a local host socket.
 
 ### Which approach to choose?
 It's a tradeoff between security and performance.  
 With the side-car pattern, if an attacker compromises your Jenkins instance, the blast radius is contained. They can only manipulate the isolated sidecar container; they cannot escape onto the physical host machine.
 
-However, using DinD approach can hurt the performance. The overhead comes from nested layering — Docker commands inside Jenkins are hitting a containerized daemon, which itself runs inside Docker, adding virtualization overhead.
+However, using DinD approach can hurt the performance. The overhead comes from nested layering - Docker commands inside Jenkins are hitting a containerized daemon, which itself runs inside Docker, adding virtualization overhead.
 
 
 ## From Claude - 2 more approaches and a summary
-### Option 1 — Install both, Jenkins and Docker, on a VM (Bare Metal / Native)
+### Option 1 - Install both, Jenkins and Docker, on a VM (Bare Metal / Native)
 
 Install Jenkins directly on the host, install Docker, and add the `jenkins` user to the `docker` group.
 
 **Pros:**
 - Simplest setup, easiest to debug
 - No Docker socket sharing complexity
-- Best raw performance — no container overhead
-- Full access to Docker daemon natively
+- Best raw performance - no container overhead
+- Full access to Docker Daemon natively
 - Helm and Docker CLI work out of the box
 
 **Cons:**
@@ -158,7 +158,7 @@ Install Jenkins directly on the host, install Docker, and add the `jenkins` user
 
 ---
 
-### Option 2 — Jenkins Container + Docker-in-Docker (DinD) Sidecar
+### Option 2 - Jenkins Container + Docker-in-Docker (DinD) Sidecar
 
 The official Jenkins docs recommend running a `docker:dind` container alongside Jenkins on the same Docker network, with Jenkins using the DinD daemon instead of the host's.
 
@@ -169,7 +169,7 @@ The official Jenkins docs recommend running a `docker:dind` container alongside 
 - Official and documented approach
 
 **Cons:**
-- Requires running the DinD container in `--privileged` mode, which is a significant security concern — a compromised build can escape to the host
+- Requires running the DinD container in `--privileged` mode, which is a significant security concern - a compromised build can escape to the host
 - More complex networking and TLS cert management
 - Performance overhead from nested virtualization
 - Image layer caching doesn't persist well between builds without extra volume configuration
@@ -178,7 +178,7 @@ The official Jenkins docs recommend running a `docker:dind` container alongside 
 
 ---
 
-### Option 3 — Jenkins Container + Docker Socket Mounting (`/var/run/docker.sock`)
+### Option 3 - Jenkins Container + Docker Socket Mounting (`/var/run/docker.sock`)
 
 Mount the host's Docker socket directly into the Jenkins container:
 
@@ -186,31 +186,31 @@ Mount the host's Docker socket directly into the Jenkins container:
 -v /var/run/docker.sock:/var/run/docker.sock
 ```
 
-This lets Jenkins control the host's Docker daemon directly.
+This lets Jenkins control the host's Docker Daemon directly.
 
 **Pros:**
-- Much simpler than DinD — no sidecar container needed
+- Much simpler than DinD - no sidecar container needed
 - No `--privileged` flag on the Jenkins container
-- Fast — uses host's Docker directly, so layer caching works great
+- Fast - uses host's Docker directly, so layer caching works great
 - Widely used and well understood
 
 **Cons:**
 - Security risk: giving a container access to the Docker socket is effectively giving it root on the host. A malicious or compromised pipeline job could escape the container entirely
 - Containers built in pipelines are siblings (not children) of the Jenkins container, which can cause path/volume confusion
-- Not truly isolated — a bad build can affect the host system
+- Not truly isolated - a bad build can affect the host system
 
 **Best for:** Internal/trusted environments where developer convenience and speed outweigh security concerns. Very popular for local dev CI setups.
 
 ---
 
-### Option 4 — Jenkins on Kubernetes (the modern industry standard)
+### Option 4 - Jenkins on Kubernetes (the modern industry standard)
 
 Run Jenkins on a Kubernetes cluster using the Kubernetes plugin. Each build spins up a fresh pod, runs the job, and is destroyed. For Docker builds, use Kaniko or Buildah (daemonless image builders that don't need Docker at all).
 
 **Pros:**
-- No Docker daemon required — Kaniko/Buildah build OCI-compliant images without root or privileged containers
-- Elastic scaling — pods spin up/down per job, no idle agents
-- True isolation — every build is a clean ephemeral environment
+- No Docker Daemon required - Kaniko/Buildah build OCI-compliant images without root or privileged containers
+- Elastic scaling - pods spin up/down per job, no idle agents
+- True isolation - every build is a clean ephemeral environment
 - Cloud-native, GitOps-friendly
 - Helm chart testing fits naturally (just run `helm test` in a pod)
 - Industry standard for teams at scale
@@ -243,6 +243,6 @@ Run Jenkins on a Kubernetes cluster using the Kubernetes plugin. Each build spin
 
 Since you need Docker builds + Docker Hub pushes + Helm chart testing, here's what's suggested based on context:
 
-- **Starting out / single VM:** Go with **Option 3** (socket mount). It's the pragmatic sweet spot — simple, fast, well-documented, and widely used. Just be aware of the security tradeoff and lock down who can trigger builds.
+- **Starting out / single VM:** Go with **Option 3** (socket mount). It's the pragmatic sweet spot - simple, fast, well-documented, and widely used. Just be aware of the security tradeoff and lock down who can trigger builds.
 - **Team environment / production:** Go with **Option 4** (Kubernetes + Kaniko). It's what most serious CI pipelines use today. Kaniko handles `docker build` + `docker push` without any daemon, and Helm testing is a natural fit in pods.
-- **Avoid Option 2** (DinD) unless you have a specific reason to want fully isolated Docker daemons — the privileged container risk usually isn't worth it compared to socket mounting, which is simpler and nearly as capable.
+- **Avoid Option 2** (DinD) unless you have a specific reason to want fully isolated Docker Daemons - the privileged container risk usually isn't worth it compared to socket mounting, which is simpler and nearly as capable.
