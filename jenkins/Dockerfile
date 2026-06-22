@@ -3,8 +3,8 @@ RUN apk add --no-cache curl
 RUN DOCKER_VERSION="29.5.2" && \
     curl -sSL "https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz" | tar -xz -C /tmp && \
     \
-    KUBECTL_VERSION="v1.36.1" && \
-    curl -Lo /tmp/kubectl "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" && \
+    KUBECTL_VERSION="1.36.1" && \
+    curl -Lo /tmp/kubectl "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" && \
     chmod +x /tmp/kubectl && \
     \
     HELM_VERSION="4.2.0" &&\

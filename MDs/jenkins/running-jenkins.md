@@ -3,9 +3,9 @@
   To run it locally, run `jenkins/docker-compose.yaml` file:
   * On MacOS / Linux:
     ```bash
-    DOCKER_GID=$(stat -f "%g" /var/run/docker.sock) docker compose -f .\jenkins\docker-compose.yaml up -d  
+    DOCKER_GID=$(stat -f "%g" /var/run/docker.sock) docker compose -f ./jenkins/docker-compose.yaml up -d
     ```
-    In Linux, replace `-f` with `-c`.
+    In Linux, replace `stat -f` with `stat -c`.
   * On Windows (assuming you run Docker on WSL2):  
     Run on PowerShell
     ```powershell

@@ -180,10 +180,31 @@ pipeline {
                             KUBECONFIG=${CI_KUBE} kubectl config view --flatten --minify > .kube_ci/config-portable
                             mv .kube_ci/config-portable ${CI_KUBE}
 
-                            # 5. Use sed to replace 127.0.0.1 with host.docker.internal
-                            # This looks for the 'server:' line and swaps the IP, keeping the original port
-                            # i flag on sed saves the file
-                            sed -i 's/127.0.0.1/host.docker.internal/g' ${CI_KUBE}
+                            # 5. Dynamic IP resolution
+                            # We check if the server is currently pointing to a localhost/127.0.0.1 address
+                            ORIGINAL_SERVER=$(yq '.clusters[0].cluster.server' ${CI_KUBE})
+
+                            if echo "$ORIGINAL_SERVER" | grep -qE '(127.0.0.1|localhost)'; then
+                                echo "Detected Windows/macOS environment (Loopback IP). Using host.docker.internal..."
+
+                                # This looks for the 'server:' line and swaps the IP, keeping the original port
+                                # i flag on yq saves the file
+                                PORT=$(echo $ORIGINAL_SERVER | grep -oE '[0-9]+$')
+                                yq -i ".clusters[0].cluster.server = \"https://host.docker.internal:${PORT}\"" ${CI_KUBE}
+                            else
+                                echo "Detected Linux network IP ($ORIGINAL_SERVER)."
+                                echo "Checking if we can reach it directly..."
+
+                                # Try to ping the control plane port with a 2-second timeout
+                                if nc -z -w 2 $(echo "$ORIGINAL_SERVER" | sed -E 's|https://||' | cut -d':' -f1) $(echo "$ORIGINAL_SERVER" | grep -oE '[0-9]+$'); then
+                                    echo "Direct connection successful. No translation needed."
+                                else
+                                    echo "Direct IP unreachable. Attempting Minikube internal DNS resolution..."
+                                    # Inside the 'minikube' docker network, the cluster control plane is always accessible via 'minikube'
+                                    PORT=$(echo $ORIGINAL_SERVER | grep -oE '[0-9]+$')
+                                    TARGET_URL="https://minikube:${PORT}" yq -i '.clusters[0].cluster.server = env(TARGET_URL)' ${CI_KUBE}
+                                fi
+                            fi
 
                             # 6. This tells the kubeconfig itself to trust the connection (since we didn't move other certificates)
                             sed -i '/certificate-authority-data/d' ${CI_KUBE}
