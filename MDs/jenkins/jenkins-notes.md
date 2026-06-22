@@ -82,21 +82,30 @@ We use a local `pre-commit` hook to catch secrets before they leave a developer'
   * `helm lint` is a built-in tool within the standard Helm CLI that examines Kubernetes charts for structural mistakes, syntax errors, and deployment best practices.
   * Configure `kube` config file  
     For testing Helm Charts we need to install the updated Chart on a running K8s cluster. Since at phase 3 we still work locally, I've decided to use the Minikube cluster running on the host machine.  
-    * To communicate with it, I've passed `~/kube/config` file to the container by using bind mount (explained above, under [Docker Compose](#docker-compose) section).  
+    * To communicate with it, I've passed `~/.kube/config` file to the container by using bind mount (explained above, under [Docker Compose](#docker-compose) section).  
     * First, I've validated that `kube` config file `current-context` is Minikube cluster. This prevents working on other clusters, like on AWS, in case the host machine is connected to them.
     * We need to make some changes to the config file, so we first make a copy of it (an extra safeguard for making the volume read-only, as explained in [Docker Compose](#docker-compose) section).
     * In the config file we have a reference to certificates. For example, on Windows machine: `C:\Users\<user>\.minikube\profiles\minikube\client.crt`.
       Jenkins can't find these files in the host machine since it runs in a container.  
       Therefore, the next 2 `sed` commands replace certificates paths to refer to the mounted volume. For example, the Windows path above will turn into `~/.minikube/profiles/minikube/client.crt`.
     * `kubectl config view --flatten --minify`
-      * `kubectl config view` prints `~/kube/config` content.
+      * `kubectl config view` prints `~/.kube/config` content.
       * `--minify` shows only the `current-context`. So, irrelevant users or clusters are wiped out.
       * `--flatten` converts external file paths, like certificates, into embedded base64 strings so subsequent stages don't rely on host mounts.
-    * Replacing `127.0.0.1` with `host.docker.internal`  
-      On `~/kube/config`, we can find the address of the cluster in `clusters[0].server`. For example: `https://127.0.0.1:63726`.  
-      Minikube binds to a **randomized** high-port on the host machine upon startup (`63726` in this example).  
-      We need to target that process running on the host machine. In Docker, we refer to the host machine by using `host.docker.internal` (like we use `localhost` in many cases).  
-      So, the result of the `sed` change is `clusters[0].server: https://host.docker.internal:63726`.
+    * Dynamic IP resolution
+      * On Windows / MacOS  
+        Replacing `127.0.0.1` with `host.docker.internal`  
+        On `~/.kube/config`, we can find the address of the cluster in `clusters[0].server`. For example: `https://127.0.0.1:63726`.  
+        Minikube binds to a **randomized** high-port on the host machine upon startup (`63726` in this example).  
+        We need to target that process running on the host machine. In Docker, we refer to the host machine by using `host.docker.internal` (like we use `localhost` in many cases).  
+        So, the result of the `yq` change is that `clusters[0].cluster.server` value is `https://host.docker.internal:63726`.
+      * On Linux
+        Minikube usually defaults to the `docker` driver. It creates a dedicated virtual network interface. The API server isn't bound to `127.0.0.1`; it binds to a specific internal bridge IP (e.g., `192.168.49.2`).  
+        We try checking TCP reachability on the internal bridge address. If it works, we have a connection and there is no need for other modifications.  
+
+        However, by default, Minikube on Linux creates a completely isolated network bridge (usually named `minikube`). While our Jenkins container lives on the standard `docker0` network bridge.  
+
+        Because they are on two completely separate virtual network bridges inside Linux, Docker intentionally blocks them from talking to each other for security. Therefore, on the provisioning script [ec2-provision.sh](/jenkins/ec2-provision.sh), we've added our jenkins container to `minikube` network, and now we refer to `minikube` container (referring to a Docker container in the same network).
     * Lastly, we remove `certificate-authority-data` and inject `insecure-skip-tls-verify: true`
       * `certificate-authority-data` is a base64-encoded copy of our cluster’s root certificate (CA).  
         It acts like a digital passport verification. When our client (like `kubectl` or `helm`) talks to the cluster, it uses this certificate data to verify that the server is authentic and not an attacker trying to intercept our traffic.  
