@@ -21,7 +21,7 @@ chmod a+r /etc/apt/keyrings/docker.asc
 tee /etc/apt/sources.list.d/docker.sources <<EOF
 Types: deb
 URIs: https://download.docker.com/linux/ubuntu
-Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+Suites: $(. /etc/os-release && echo "$${UBUNTU_CODENAME:-$VERSION_CODENAME}")
 Components: stable
 Architectures: $(dpkg --print-architecture)
 Signed-By: /etc/apt/keyrings/docker.asc
@@ -39,10 +39,11 @@ apt install -y \
 # Permissions
 usermod -aG docker $HOST_USER
 
-
-echo "#### 2. Installing Minikube ####"
-curl -LO https://github.com/kubernetes/minikube/releases/download/v$MINIKUBE_RELEASE/minikube-linux-amd64
-install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+# FIX - minikube - maybe I won't install minikube
+# FIX - if so, update the titles counting
+# echo "#### 2. Installing Minikube ####"
+# curl -LO https://github.com/kubernetes/minikube/releases/download/v$MINIKUBE_RELEASE/minikube-linux-amd64
+# install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
 
 
 echo "#### 3. Installing kubectl (if we will want to debug from the host) ####"
@@ -52,13 +53,13 @@ echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check # Validates kubectl bi
 install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 kubectl version --client
 
-
-echo "#### 4. Running Jenkins container ####"
-mkdir -p /home/$HOST_USER/.minikube /home/$HOST_USER/.kube /home/$HOST_USER/.docker
-chown -R $HOST_USER:$HOST_USER /home/$HOST_USER/.minikube /home/$HOST_USER/.kube /home/$HOST_USER/.docker
+# FIX - minikube + update title, it is incorrect
+# echo "#### 4. Running Jenkins container ####"
+# mkdir -p /home/$HOST_USER/.minikube /home/$HOST_USER/.kube /home/$HOST_USER/.docker
+# chown -R $HOST_USER:$HOST_USER /home/$HOST_USER/.minikube /home/$HOST_USER/.kube /home/$HOST_USER/.docker
 
 # Starting minikube as $HOST_USER
-sudo -i -u $HOST_USER minikube start --driver=docker
+# sudo -i -u $HOST_USER minikube start --driver=docker # FIX - minikube
 
 
 echo "#### 5. Clone repository and start Jenkins ####"
@@ -67,7 +68,7 @@ sudo -i -u $HOST_USER git clone https://github.com/Ori-Sason/devops-experts-fina
 
 DOCKER_GID=$(stat -c %g /var/run/docker.sock)
 sudo -i -u $HOST_USER bash -c "cd $REPO_DIR && DOCKER_GID=$DOCKER_GID docker compose -f ./jenkins/docker-compose.yaml up -d"
-sudo -i -u $HOST_USER docker network connect minikube jenkins
+# sudo -i -u $HOST_USER docker network connect minikube jenkins # FIX - minikube
 
 # To view provisioning script inside the instance
 # 1. log he instance using SSH
