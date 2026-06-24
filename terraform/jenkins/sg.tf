@@ -10,9 +10,9 @@ resource "aws_security_group" "jenkins_sg" {
 resource "aws_vpc_security_group_ingress_rule" "jenkins_sg_inbound_allow_alb_80" {
   security_group_id            = aws_security_group.jenkins_sg.id
   referenced_security_group_id = var.alb_sg_id
-  from_port                    = 80 # FIX - 8080
+  from_port                    = 8080
   ip_protocol                  = "tcp"
-  to_port                      = 80 # FIX - 8080
+  to_port                      = 8080
 }
 
 resource "aws_vpc_security_group_egress_rule" "jenkins_sg_outbound_allow_all" {
