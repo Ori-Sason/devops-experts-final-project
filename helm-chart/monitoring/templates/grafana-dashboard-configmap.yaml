@@ -1,10 +1,11 @@
 # FIX - explain about the script that updates the JSON file
+# Creating new dashboard in Grafana
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: automated-grafana-dashboard
   labels:
-    # This matches the label our sidecar is looking for. Check out values.yaml file.
+    # The sidecar will instantly find this file because of this label. Check out values.yaml file.
     grafana_dashboard: "1"
 data:
   my-dashboard.json: |-

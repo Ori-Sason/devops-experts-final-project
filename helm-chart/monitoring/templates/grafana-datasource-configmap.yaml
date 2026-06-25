@@ -1,0 +1,18 @@
+# Creating new datasource in Grafana, so it will use data of Prometheus
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: automated-prometheus-datasource
+  labels:
+    # The sidecar will instantly find this file because of this label. Check out values.yaml file.
+    grafana_datasource: "1"
+  namespace: {{ .Release.Namespace }}
+data:
+  prometheus-datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://monitoring-prometheus-server.monitoring.svc.cluster.local
+        access: proxy
+        isDefault: true # Immediately query this data source without needing manual adjustments in the UI
