@@ -11,4 +11,6 @@
 !/src/env/postgres.env
 !/src/env/web-app.env
 
+helm-chart/**/charts/*.tgz
+
 .terraform/
