@@ -1,0 +1,11 @@
+# FIX - explain about the script that updates the JSON file
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: automated-grafana-dashboard
+  labels:
+    # This matches the label our sidecar is looking for. Check out values.yaml file.
+    grafana_dashboard: "1"
+data:
+  my-dashboard.json: |-
+{{ .Files.Get "dashboards/15757_rev43_patched.json" | indent 4 }}
