@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: automated-prometheus-datasource
+  namespace: {{ .Release.Namespace }}
+  labels:
+    grafana_datasource: "1"
+  namespace: {{ .Release.Namespace }}
+data:
+  prometheus-datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://{{ .Release.Namespace }}-prometheus-server.{{ .Release.Namespace }}.svc.cluster.local
+        access: proxy
+        isDefault: true

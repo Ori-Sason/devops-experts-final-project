@@ -133,7 +133,7 @@ pipeline {
                 anyOf {
                     expression { WEB_APP_BUILT == 'true' }
                     expression { params.FORCE_HELM == true }
-                    changeset 'helm-chart/**'
+                    changeset 'helm-chart/visit-counter/**'
                 }
             }
 
@@ -222,8 +222,8 @@ pipeline {
                         echo 'Testing Helm chart...'
                         sh """
                             # Wait up to 3 minutes for the installation and all pods to be fully ready
-                            KUBECONFIG=${CI_KUBE} helm install ${TEST_HELM_CHART_NAME} ./helm-chart \
-                                -f ./helm-chart/values-test.yaml \
+                            KUBECONFIG=${CI_KUBE} helm install ${TEST_HELM_CHART_NAME} ./helm-chart/visit-counter \
+                                -f ./helm-chart/visit-counter/values-test.yaml \
                                 --namespace ${TEST_NS} \
                                 --create-namespace \
                                 --set web.image.repository=${params.DOCKER_HUB_REPO} \
@@ -252,7 +252,7 @@ pipeline {
 
                 stage('helm-chart: package and deploy') {
                     steps {
-                        dir('helm-chart') {
+                        dir('helm-chart/visit-counter') {
                             echo "Updating values.yaml with image tag ${RELEASE_VERSION} and Chart version"
                             sh """
                                 yq -i '.web.image.tag = \"${RELEASE_VERSION}\"' values-test.yaml

@@ -209,3 +209,53 @@ We are requested to create a **Helm Chart** for our Kubernetes application, set 
     The reason for this is that when a `LoadBalancer` service is created in Minikube, its `EXTERNAL-IP` status remains stuck as `<pending>` by default. In the [Jenkinsfile](/jenkins/Jenkinsfile) `helm-chart: test` stage, I install the Helm chart on the cluster before running the connection tests. Since it takes time for the database and application pods to spin up, I use the `--wait` flag in the `helm install` command. One of the requirements for Helm to consider a `LoadBalancer` service 'ready' (and thus stop waiting) is for its `EXTERNAL-IP` to be provisioned with a real IP or hostname. Because Minikube lacks a cloud controller to assign external IPs natively, Helm never receives this status update inside the isolated Jenkins container network environment (`EXTERNAL-IP` stays `<pending>`). As a result, the pipeline blocks on the `helm install` command until it hits the timeout.  
     Switching the service type to `ClusterIP` for the test environment seamlessly resolves this, as Helm no longer expects an external IP address.  
     If I were deploying this to a live cloud infrastructure provider (like AWS or GCP), an external load balancer IP would be provisioned automatically, and the command would succeed without getting stuck.
+
+## Phase 4 -
+#### FIX - missing title
+
+End phase commit: []() # FIX - add commit
+
+#### FIX - add description of the phase
+
+### Notes
+* Monitoring (Prometheus and Grafana)
+  * When we want to use public charts in our own chart, we should define the dependencies charts in `Chart.yaml` file, under `dependencies` property.  
+    To update the charts versions in this case:
+    * Update the version under `dependencies` property in `Chart.yaml` file.
+    * Run `helm dependency update <chart-location>`.
+  * Once you install the chart, dependencies will be creates under `charts/` folder. These are compressed `.tgz` files.  
+    We avoid uploading `*.tgz` files to GitHub because these binary archives unnecessarily inflate the repository size. Instead, we rely on the details in the `Chart.lock` file. Therefore, I've added this folder content to `.gitignore`.  
+    When a user download the repository, it won't have the compressed files in `./helm-chart/monitoring/charts`.
+    Therefore, he should run `helm dependency build <chart-location>`, which downloads the dependencies as compressed charts, based on `Chart.lock` file. Only then we can run `helm install <chart-location>`.
+  * In order to have a dashboard in Grafana, we should add Prometheus as a datasource and import a Dashboard.  
+    Instead of doing it manually in the UI, I wanted to add an automation. The connection is configured in [values.yaml](/helm-chart/monitoring/values.yaml) and in 2 ConfigMaps inside `templates/` folder.
+    * Creating the datasource automatically is done by enabling `datasources` in `values.yaml` file, and ConfigMap [grafana-datasource-configmap.yaml](/helm-chart/monitoring/templates/grafana-datasource-configmap.yaml).  
+      The embedded `datasource.yaml` file (in the datasource ConfigMap) configures the connection details within Grafana:
+      * `name: Prometheus` display name that appears in Grafana dashboard dropdown menus.
+      * `type: prometheus` tells Grafana to use its built-in Prometheus query plugin.
+      * `url` is the internal Kubernetes DNS address (`http://cluster.local`) used by Grafana to pull data from the Prometheus service.
+      * `access: proxy` directs Grafana to route queries through its own server backend rather than from the user's browser.
+      * `isDefault: true` immediately query this data source without needing manual adjustments in the UI.
+    * Creating the dashboard automatically is done by enabling `dashboards` in `values.yaml` file, and ConfigMap [grafana-dashboard-configmap.yaml](/helm-chart/monitoring/templates/grafana-dashboard-configmap.yaml).  
+      We import a dashboard JSON file to the ConfigMap instead of installing it from the internet. Few reasons for that:
+      1. We make sure that we use exactly the same dashboard over time (in case a revision is updated).
+      2. I had some errors downloading a dashboard automatically, and I've found that using a manual dashboard is more reliable.
+      3. I've noticed that some of the panels weren't working on the published dashboard and I had to manipulate the file (more on that on `update-dashboard-json` script explanation).
+    * labels `grafana_datasource: '1'` and `grafana_dashboard: '1'`  
+      Grafana installations (like those deployed via Helm charts) run a sidecar container. This sidecar continuously scans the cluster for ConfigMaps with this specific label and automatically injects them into Grafana without requiring a manual restart.  
+      Instead of letting Grafana scan every single ConfigMap in the Kubernetes cluster, we tell the sidecar to only intercept ConfigMaps labeled as defined in the `sidecar` configuration.
+    * `update-dashboard-json` Python script
+      Some of the panels didn't work and I had to manipulate the code a bit. I've created a Python script in case a new revision will be published and I'll need to update the JSON file.
+      You can find the replacements at the top of the file:
+      * Removed `{cluster="$cluster"}`  
+        A local Prometheus instance does not inject a `cluster` identity label into its local Time Series Database (TSDB - the DB of Prometheus). `cluster` labels are only appended as `external_labels` when forwarding data out of the environment (e.g., via `remote_write` to a global aggregator, like when forwarding alerts to an Alertmanager or shipping metrics to a centralized Prometheus server). Since Grafana is querying the local TSDB directly, the label does not exist, causing queries with this filter to return `No Data`.  
+        The following 2 fixes, related to `job` and `mode="idle"`, are just to keep the PromQL syntax clean.
+      * Removed `{image!=""}`  
+        Since `kubelet` version `1.24`, Docker plugin from `cAdvisor` was removed. Therefore, `cAdvisor` could not fetch Docker container infos about image labels and so on ([GitHub issue 111077](https://github.com/kubernetes/kubernetes/issues/111077#issuecomment-1183914189)).  
+        * `cAdvisor` (Container Advisor) is an open-source agent built directly into Kubernetes (embedded in the `kubelet` process) that automatically discovers, collects, and processes resource usage statistics for running containers.  
+
+        Therefore, there are no metrics using `image` label, so having that label on the query doesn't return results. As a result, the panel will have a `No Data` message at the center of it.  
+        To solve that I've simply removed this label from the query.
+      * Updated `Container Restarts by namespace` and `OOM Events by namespace` panels. Both of these showed `No Data` label when the number of events was `0`. I've preferred to show `0` value instead of that. Also, preferred showing the exact number of events at a certain timeframe (`$__range`) rather the original manipulated calculation (`$__rate_interval`).  
+    * Grafana `side car`  
+      The Grafana Sidecar is a helper container running alongside Grafana inside its pod. Its sole job is to automatically detect and load configurations dynamically from our cluster so we don't have to restart Grafana or hardcode configurations in our main configuration files.

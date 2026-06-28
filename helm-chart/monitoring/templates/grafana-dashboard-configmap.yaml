@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: automated-grafana-dashboard
+  namespace: {{ .Release.Namespace }}
+  labels:
+    grafana_dashboard: "1"
+data:
+  dashboard.json: |-
+{{ .Files.Get "dashboards/15757_rev43_patched.json" | indent 4 }}

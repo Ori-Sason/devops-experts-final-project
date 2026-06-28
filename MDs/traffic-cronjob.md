@@ -1,7 +1,7 @@
 # Traffic Generator CronJob
 
 This Kubernetes CronJob automates the generation of synthetic traffic to the application.  
-To use it, enable `syntheticTraffic` on `helm-chart/values.yaml`.  
+To use it, enable `syntheticTraffic` on `helm-chart/visit-counter/values.yaml`.  
 Next, install or upgrade the cluster by running `helm install` or `helm upgrade`.
 
 ## Overview
