@@ -5,10 +5,11 @@ import sys
 REPLACEMENTS = [
     (r', cluster=\"$cluster\"', ''),
     (r'cluster=\"$cluster\"', ''),
-    (r', job=\"$job\"', ''),
-    (r'job=\"$job\"', ''),
+    (r'{, job=\"$job\"}', r'{job=\"$job\"}'),
     (r'{,mode=\"idle\"}', r'{mode=\"idle\"}'),
+
     (r'image!=\"\"', ''),
+
     (
         'sum(increase(kube_pod_container_status_restarts_total{}[$__rate_interval])) by (namespace) > 0',
         'sum(increase(kube_pod_container_status_restarts_total{}[$__range])) by (namespace)'

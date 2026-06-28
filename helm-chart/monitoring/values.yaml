@@ -1,16 +1,5 @@
-# Prometheus stamps `cluster="doesn't-matter"` onto data ONLY when it leaves the cluster (outbound alerts/remote write).
-# Included here because dashboard 15757 panels requires $cluster variable.
-# If we don't do that, $cluster will be empty and some panels will show an error.
-prometheus:
-  server:
-    global:
-      external_labels:
-        cluster: "doesn't-matter"
-
 grafana:
   sidecar:
-    # Instead of letting Grafana scan every single ConfigMap in the Kubernetes cluster,
-    # we tell the sidecar to only intercept ConfigMaps labeled with "grafana_datasource: '1'".
     datasources:
       enabled: true
       label: grafana_datasource
@@ -19,4 +8,3 @@ grafana:
       enabled: true
       label: grafana_dashboard
       labelValue: "1"
-      searchNamespace: ALL
