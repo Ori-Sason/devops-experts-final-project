@@ -1,12 +1,10 @@
-# FIX - explain about the script that updates the JSON file
-# Creating new dashboard in Grafana
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: automated-grafana-dashboard
+  namespace: {{ .Release.Namespace }}
   labels:
-    # The sidecar will instantly find this file because of this label. Check out values.yaml file.
     grafana_dashboard: "1"
 data:
-  my-dashboard.json: |-
+  dashboard.json: |-
 {{ .Files.Get "dashboards/15757_rev43_patched.json" | indent 4 }}
