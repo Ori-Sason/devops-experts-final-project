@@ -42,7 +42,7 @@ We use a local `pre-commit` hook to catch secrets before they leave a developer'
 
     Normally, scanning the entire history repeatedly is inefficient; pipelines should ideally only scan the delta of the current Pull Request (PR). However, because our Jenkins instance is deployed locally, we cannot receive incoming GitHub Webhook event triggers when a PR is opened or updated. Because Jenkins cannot reliably isolate PR commit boundaries post-merge (we would get `0 commits scanned`), scanning the entire repository history is our most secure fallback option. Given the small scale of this project, the historical scan finishes in milliseconds.
 
-  * Our project contains infrastructure configurations (such as `/helm-chart/db-secret.yaml` and files inside the `/web-app/env/` folder) that contain required test secrets. I've explained that I keep these "secrets" in the code to keep  local learning environment simple [README.MD](/README.md/#running-the-application-locally-using-docker-compose).
+  * Our project contains infrastructure configurations (such as `/helm-chart/visit-counter/templates/db-secret.yaml` and files inside the `/web-app/env/` folder) that contain required test secrets. I've explained that I keep these "secrets" in the code to keep  local learning environment simple [README.MD](/README.md/#running-the-application-locally-using-docker-compose).
     Gitleaks detects this file by a certain commit, so I've added it to `.gitleaksignore` list.
   * Other flags used  
     * `--verbose` / `-v`: overrides the default quiet scan. It prints the full findings and lets you see exactly which line triggered the alert and why.
@@ -55,7 +55,7 @@ We use a local `pre-commit` hook to catch secrets before they leave a developer'
     *OR* manually.
   * `helm-chart` - handles Helm Charts.  
     Triggered if the `web-app` stage was triggered and completed successfully  
-    *OR* there was a change in `./helm-chart/` folder  
+    *OR* there was a change in `./helm-chart/visit-counter/` folder  
     *OR* manually.
   * I've included manual triggers in case a job fails and Jenkins does not detect a new changeset compared to the previous broken build.
     Also, I could make the job running automatically by using Poll SCM trigger, but I decided not to.
