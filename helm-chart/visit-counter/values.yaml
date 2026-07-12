@@ -13,7 +13,7 @@ web:
 db:
   service:
     port: 5432
-    portName:  web-db-postgres
+    portName: web-db-postgres
 
 autoscaling:
   enabled: false
