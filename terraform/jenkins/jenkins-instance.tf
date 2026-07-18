@@ -1,7 +1,7 @@
 resource "aws_instance" "jenkins_instance" {
   ami                    = var.t3_micro_ami_id
-  instance_type          = "t3.medium" # FIX - minikube - if we need Minikube, it should be t3.large and maybe with more SSD
-  subnet_id              = aws_subnet.jenkins_priv.id
+  instance_type          = "t3.small" # FIX - minikube - if we need Minikube, it should be t3.large and maybe with more SSD
+  subnet_id              = aws_route_table_association.devops_experts_jenkins_priv_sub.subnet_id # Making sure NAT GW is available before creating the instance
   vpc_security_group_ids = [aws_security_group.jenkins_sg.id]
 
   iam_instance_profile = aws_iam_instance_profile.jenkins_profile.name

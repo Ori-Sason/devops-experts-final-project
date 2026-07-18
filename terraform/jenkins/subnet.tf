@@ -24,4 +24,7 @@ resource "aws_route" "jenkins_priv_nat_route" {
 resource "aws_route_table_association" "devops_experts_jenkins_priv_sub" {
   subnet_id      = aws_subnet.jenkins_priv.id
   route_table_id = aws_route_table.jenkins_priv_rt.id
+
+  # For making sure NAT GW is available before creating instances
+  depends_on = [ aws_route.jenkins_priv_nat_route ]
 }
