@@ -7,7 +7,7 @@ variable "zone1" {
   type = string
 }
 
-variable "t3_micro_ami_id" {
+variable "ubuntu_ami_id" {
   type = string
 }
 
