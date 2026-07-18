@@ -259,3 +259,26 @@ End phase commit: []() # FIX - add commit
       * Updated `Container Restarts by namespace` and `OOM Events by namespace` panels. Both of these showed `No Data` label when the number of events was `0`. I've preferred to show `0` value instead of that. Also, preferred showing the exact number of events at a certain timeframe (`$__range`) rather the original manipulated calculation (`$__rate_interval`).  
     * Grafana `side car`  
       The Grafana Sidecar is a helper container running alongside Grafana inside its pod. Its sole job is to automatically detect and load configurations dynamically from our cluster so we don't have to restart Grafana or hardcode configurations in our main configuration files.
+* AWS Architecture
+  * The AWS architecture diagram is available in the [README.md](/README.md#aws-architecture) file.  
+    First, it is worth mentioning that **this design is an overkill** for a project at this scale. However, my goal was to simulate a production-ready environment featuring a K3s Kubernetes cluster running across multiple nodes, a dedicated instance for Jenkins, and an Amazon RDS database instead of a Docker container running inside the cluster.
+  * K3s Cluster
+    * I chose K3s over Minikube to enable running the cluster across multiple EC2 instances. Only the `web-app` nodes are exposed to the Application Load Balancer (ALB), while the Monitoring and Control Plane nodes remain isolated from the internet.
+    * Because K3s does not natively scale nodes automatically, node scaling is managed via an AWS Auto Scaling Group (ASG). While managed alternatives like AWS EKS or kOps handle node scaling out of the box, I opted for this self-managed K3s approach to keep costs minimal.
+  * Jenkins Security
+    * Jenkins runs within an isolated private subnet due to its high privilege levels. I configured Security Groups to block all communication from the K3s nodes to the Jenkins instance. To add an extra layer of defense-in-depth, Network Access Control Lists (NACLs) could also be implemented to completely block traffic between the K3s private subnet and the Jenkins private subnet.
+  * Session Manager
+    * While I was already familiar with using a bastion host (or "jump server") to connect to instances in private subnets, I wanted to explore modern alternatives. I came across the article, [*Secure Access to Private EC2 Instance in Private Subnet Methods and Best Practices*](https://medium.com/@hobballah.yasser/secure-access-to-private-ec2-instance-in-private-subnet-methods-and-best-practices-d4ee75a506d3) by Yasser Hobballah, which outlines four approaches: Bastion Host, Session Manager via NAT Gateway, Session Manager via VPC Endpoints, and EC2 Instance Connect Endpoint.
+    * Since this architecture already utilizes a NAT Gateway to install packages on the EC2 instances and allow Jenkins to push images to Docker Hub, I opted for the second approach: AWS Systems Manager Session Manager (Note: while I could have built a custom AMI with the required software pre-installed, I wanted the entire cluster to provision dynamically from scratch using a single `terraform apply` command).
+    * Session Manager is a fully managed AWS Systems Manager tool. It allows secure management of EC2 instances without exposing them to the internet or opening inbound ports. Behind the scenes, the AWS SSM Agent installed on the instance relies on a outbound polling mechanism - checking in with the AWS Systems Manager API for pending connection requests - which is why it works perfectly via a NAT Gateway without requiring an Internet Gateway (IGW) route.  
+    With this setup, I can log directly into an instance:
+      ```bash
+      aws ssm start-session --target <instance-id>
+      ```
+      Or establish a port-forwarding session to access an application UI from a local browser:
+      ```bash
+      aws ssm start-session \
+        --target <instance-id> \
+        --document-name AWS-StartPortForwardingSession \
+        --parameters '{"portNumber":["<instance-port>"],"localPortNumber":["<local-port>"]}'
+      ```

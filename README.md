@@ -44,9 +44,14 @@ web-app                 # Web app application source code
 ```
 * Mentioned only relevant files
 
+## AWS architecture
+<div align="center">
+  <img src="./MDs/images/aws-architecture.png" alt="AWS architecture design" width="450"/>
+</div>
+
 ## Kubernetes architecture
 <div align="center">
-  <img src="./MDs/images/kubernetes-architecture.png" alt="Architecture design" width="450"/>
+  <img src="./MDs/images/kubernetes-architecture.png" alt="K8s architecture design" width="450"/>
 </div>
 
 ## Installation
