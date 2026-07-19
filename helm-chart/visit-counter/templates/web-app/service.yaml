@@ -13,3 +13,6 @@ spec:
     - protocol: TCP
       port: {{ .Values.web.service.port }}
       targetPort: {{ .Values.web.service.portName }}
+      {{- if eq .Values.global.stage "prod" }}
+      nodePort: {{ .Values.web.service.nodePort }}
+      {{- end }}

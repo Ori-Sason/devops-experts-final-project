@@ -23,6 +23,10 @@ variable "alb_sg_id" {
   type = string
 }
 
+variable "web_app_node_port" {
+  type = number
+}
+
 variable "jenkins_sg_id" {
   type = string
 }

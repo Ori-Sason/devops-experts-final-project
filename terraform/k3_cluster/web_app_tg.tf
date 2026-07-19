@@ -1,16 +1,19 @@
 resource "aws_lb_target_group" "web_app_tg" {
   name     = "devops-experts-web-app-tg"
-  port     = 80
+  port     = 32080
   protocol = "HTTP"
   vpc_id   = var.devops_experts_vpc_id
 
-  # FIX - update health check
   health_check {
-    path                = "/"
+    enabled             = true
+    path                = "/health"
+    port                = var.web_app_node_port
+    protocol            = "HTTP"
+    matcher             = "200" # Only 200 means "Healthy"
     interval            = 30
-    timeout             = 10
-    healthy_threshold   = 3
-    unhealthy_threshold = 3
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
   }
 
   tags = {

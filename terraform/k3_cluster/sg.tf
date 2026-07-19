@@ -77,8 +77,8 @@ resource "aws_vpc_security_group_ingress_rule" "web_worker_http_from_alb" {
   description                  = "HTTP traffic forwarded from the ALB SG"
   security_group_id            = aws_security_group.k3s_web_app_sg.id
   referenced_security_group_id = var.alb_sg_id
-  from_port                    = 80
-  to_port                      = 80
+  from_port                    = var.web_app_node_port
+  to_port                      = var.web_app_node_port
   ip_protocol                  = "tcp"
 }
 
