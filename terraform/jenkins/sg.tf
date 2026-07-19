@@ -20,3 +20,8 @@ resource "aws_vpc_security_group_egress_rule" "jenkins_sg_outbound_allow_all" {
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
 }
+
+output "jenkins_sg_id" {
+  description = "Jenkins SG ID - used in k3_cluster SG"
+  value       = aws_security_group.jenkins_sg.id
+}
