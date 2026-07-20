@@ -1,6 +1,6 @@
 resource "aws_lb_target_group" "web_app_tg" {
   name     = "devops-experts-web-app-tg"
-  port     = 32080
+  port     = var.web_app_node_port
   protocol = "HTTP"
   vpc_id   = var.devops_experts_vpc_id
 
