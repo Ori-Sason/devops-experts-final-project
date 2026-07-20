@@ -18,6 +18,10 @@ spec:
         {{- include "visit-counter.labels" . | nindent 8 }}
         {{- include "visit-counter.selectorLabels" (list . "web-app") | nindent 8 }}
     spec:
+      {{- if eq .Values.global.stage "prod" }}
+      nodeSelector:
+        {{- toYaml .Values.web.nodeSelector | nindent 8 }}
+      {{- end}}
       containers:
         - name: web-app
           image: "{{ .Values.web.image.repository }}:{{ .Values.web.image.tag }}"

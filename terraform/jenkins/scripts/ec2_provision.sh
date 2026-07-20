@@ -69,7 +69,17 @@ if [ -d "/var/lib/docker/buildkit" ]; then
 fi
 
 
-echo "#### 1. Installing Docker ####"
+echo "#### 1. Waiting for Internet connectivity ####"
+echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
+echo "Waiting for NAT Gateway internet connectivity..."
+until curl -s --connect-timeout 3 https://8.8.8.8 > /dev/null; do
+    echo "Internet not reachable yet. Retrying in 5 seconds..."
+    sleep 5
+done
+echo "Internet connection established!"
+
+
+echo "#### 2. Installing Docker ####"
 apt-get update
 apt-get install -y git curl ca-certificates #ce-certificates required for Docker
 

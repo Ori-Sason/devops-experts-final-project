@@ -45,7 +45,7 @@ resource "aws_lb_listener" "alb_listener_80" {
 
   default_action {
     type             = "forward"
-    target_group_arn = module.jenkins.jenkins_target_group_arn
+    target_group_arn = module.k3_cluster.web_app_target_group_arn
   }
 }
 
@@ -69,19 +69,18 @@ resource "aws_lb_listener_rule" "jenkins_rule" {
   }
 }
 
-# FIX
-# resource "aws_lb_listener_rule" "k3s_rule" {
-#   listener_arn = aws_lb_listener.alb_listener_80.arn
-#   priority     = 20
+resource "aws_lb_listener_rule" "k3s_rule" {
+  listener_arn = aws_lb_listener.alb_listener_80.arn
+  priority     = 20
 
-#   action {
-#     type             = "forward"
-#     target_group_arn = aws_lb_target_group.k3s.arn
-#   }
+  action {
+    type             = "forward"
+    target_group_arn = module.k3_cluster.web_app_target_group_arn
+  }
 
-#   condition {
-#     path_pattern {
-#       values = ["/*"]
-#     }
-#   }
-# }
+  condition {
+    path_pattern {
+      values = ["*"]
+    }
+  }
+}

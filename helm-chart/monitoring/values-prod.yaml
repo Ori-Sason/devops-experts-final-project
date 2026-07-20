@@ -1,0 +1,14 @@
+prometheus:
+  server:
+    nodeSelector:
+      role: monitoring
+  alertmanager:
+    nodeSelector:
+      role: monitoring
+  pushgateway:
+    nodeSelector:
+      role: monitoring
+
+grafana:
+  nodeSelector:
+    role: monitoring

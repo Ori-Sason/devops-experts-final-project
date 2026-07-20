@@ -1,0 +1,18 @@
+global:
+  stage: prod
+
+web:
+  nodeSelector:
+    role: web-app
+  replicas: 1
+  image:
+    tag: v4
+  service:
+    type: NodePort
+    nodePort: 32080
+
+autoscaling:
+  enabled: true
+
+syntheticTraffic:
+  enabled: false
