@@ -18,8 +18,13 @@ aws ssm start-session \
 
 # from now on you can use `kubectl` in your terminal
 
-# Install external-secrets for connecting to AWS RDS
+### Install external-secrets for connecting to AWS RDS
 helm repo add external-secrets https://charts.external-secrets.io
+
+# Update ./terraform/secrets-auto-tfvars.example
+# 1. Fill in username and password for the DB master user
+# 2. rename the file to: ./terraform/secrets.auto.tfvars
+# Then continue with the following commands
 
 helm install external-secrets external-secrets/external-secrets \
   -n external-secrets \
