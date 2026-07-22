@@ -17,3 +17,15 @@ variable "ubuntu_ami_id" {
 variable "web_app_node_port" {
   default = 32080
 }
+
+variable "db_username" {
+  type        = string
+  description = "Database administrator username"
+  sensitive   = true
+}
+
+variable "db_password" {
+  type        = string
+  description = "Database administrator password"
+  sensitive   = true
+}

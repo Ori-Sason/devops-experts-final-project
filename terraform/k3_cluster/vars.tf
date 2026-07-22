@@ -30,3 +30,7 @@ variable "web_app_node_port" {
 variable "jenkins_sg_id" {
   type = string
 }
+
+variable "ssm_read_for_rds_secrets_policy_arn" {
+  type = string
+}

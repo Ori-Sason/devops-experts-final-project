@@ -50,17 +50,18 @@ spec:
               path: /health
               port: {{ .Values.web.service.portName }}
             initialDelaySeconds: 20
-      initContainers:
-      - name: wait-for-db
-        image: busybox:1.37.0
-        command:
-        - sh
-        - -c
-        - |
-          echo "Waiting for database service..."
+      # FIX
+      # initContainers:
+      # - name: wait-for-db
+      #   image: busybox:1.37.0
+      #   command:
+      #   - sh
+      #   - -c
+      #   - |
+      #     echo "Waiting for database service..."
 
-          until nc -z {{ include "visit-counter.componentName" (list . "web-db-svc") }} {{ .Values.db.service.port }}; do
-            echo "DB not ready, sleeping 2s..."
-            sleep 2
-          done
-          echo "DB is up!"
+      #     until nc -z {{ include "visit-counter.componentName" (list . "web-db-svc") }} {{ .Values.db.service.port }}; do
+      #       echo "DB not ready, sleeping 2s..."
+      #       sleep 2
+      #     done
+      #     echo "DB is up!"

@@ -11,6 +11,7 @@ web:
     port: 80
     portName: web-app-http
 db:
+  enabled: true
   service:
     port: 5432
     portName: web-db-postgres

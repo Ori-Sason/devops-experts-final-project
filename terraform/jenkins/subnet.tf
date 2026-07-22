@@ -1,6 +1,6 @@
 resource "aws_subnet" "jenkins_priv" {
   vpc_id            = var.devops_experts_vpc_id
-  cidr_block        = "172.20.5.0/24"
+  cidr_block        = "172.20.6.0/24"
   availability_zone = var.zone1
   tags = {
     Name = "devops-experts-jenkins-priv-sub"

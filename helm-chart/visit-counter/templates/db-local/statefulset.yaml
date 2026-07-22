@@ -1,3 +1,4 @@
+{{- if .Values.db.enabled }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -16,7 +17,6 @@ spec:
         {{- include "visit-counter.labels" . | nindent 8 }}
         {{- include "visit-counter.selectorLabels" (list . "web-db") | nindent 8 }}
     spec:
-      # FIX - remove the following after moving to RDS
       {{- if eq .Values.global.stage "prod" }}
       nodeSelector:
         {{- toYaml .Values.web.nodeSelector | nindent 8 }}
@@ -60,3 +60,4 @@ spec:
           volumeMounts:
             - mountPath: /var/lib/postgresql/18/docker
               name: storage-volume
+{{- end }}

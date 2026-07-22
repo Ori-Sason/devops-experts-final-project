@@ -10,6 +10,11 @@ web:
   service:
     type: NodePort
     nodePort: 32080
+db:
+  enabled: false
+
+aws:
+  parameterStoreRegion: us-east-1
 
 autoscaling:
   enabled: true

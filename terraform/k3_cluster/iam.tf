@@ -48,6 +48,11 @@ resource "aws_iam_role_policy_attachment" "master_attach" {
   policy_arn = aws_iam_policy.k3s_master_policy.arn
 }
 
+resource "aws_iam_role_policy_attachment" "master_ssm_read_for_rds_secrets_attach" {
+  role       = aws_iam_role.k3s_master_role.name
+  policy_arn = var.ssm_read_for_rds_secrets_policy_arn
+}
+
 resource "aws_iam_role_policy_attachment" "master_ssm_core" {
   role       = aws_iam_role.k3s_master_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
