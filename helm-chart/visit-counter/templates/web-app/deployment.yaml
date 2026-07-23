@@ -51,16 +51,27 @@ spec:
               port: {{ .Values.web.service.portName }}
             initialDelaySeconds: 20
       initContainers:
-      - name: wait-for-db
-        image: busybox:1.37.0
-        command:
-        - sh
-        - -c
-        - |
-          echo "Waiting for database service..."
+        - name: wait-for-db
+          image: busybox:1.37.0
+          envFrom:
+            - secretRef:
+                name: {{ include "visit-counter.componentName" (list . "web-db-secret") }}
+          command:
+          - sh
+          - -c
+          - |
+            echo "Waiting for database service..."
 
-          until nc -z {{ include "visit-counter.componentName" (list . "web-db-svc") }} {{ .Values.db.service.port }}; do
-            echo "DB not ready, sleeping 2s..."
-            sleep 2
-          done
-          echo "DB is up!"
+            {{- if .Values.db.enabled }}
+            DB_HOST="{{ include "visit-counter.componentName" (list . "web-db-svc") }}"
+            DB_PORT="{{ .Values.db.service.port }}"
+            {{- else if eq .Values.global.stage "prod" }}
+            DB_HOST="${DB_HOST}"
+            DB_PORT=5432
+            {{- end }}
+
+            until nc -z "${DB_HOST}" "${DB_PORT}"; do
+              echo "DB not ready, sleeping 2s..."
+              sleep 2
+            done
+            echo "DB is up!"

@@ -116,6 +116,11 @@ resource "aws_vpc_security_group_egress_rule" "web_worker_outbound_all" {
   ip_protocol       = "-1"
 }
 
+output "k3s_web_app_nodes_sg_id" {
+  description = "K3s web-app SG ID - used in RDS SG"
+  value       = aws_security_group.k3s_web_app_sg.id
+}
+
 
 # K3S MONITORING
 resource "aws_security_group" "k3s_monitoring_sg" {

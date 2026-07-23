@@ -2,11 +2,8 @@
 ```bash
 terraform -chdir=./terraform apply
 
-# Prints K3s master EC2 ID
-aws ec2 describe-instances --filters "Name=tag:Name,Values=devops-experts-k3s-master" "Name=instance-state-name,Values=running" --query "Reservations[0].Instances[0].InstanceId" --output text
-
 # Copies kubeconfig file from EC2 to local
-aws ssm start-session --target <k3s-master-id>
+aws ssm start-session --target $(aws ec2 describe-instances --filters "Name=tag:Name,Values=devops-experts-k3s-master" "Name=instance-state-name,Values=running" --query "Reservations[0].Instances[0].InstanceId" --output text)
 sudo cat /etc/rancher/k3s/k3s.yaml # in k3 master
 exit
 
@@ -21,6 +18,17 @@ aws ssm start-session \
 
 # from now on you can use `kubectl` in your terminal
 
+### Install external-secrets for connecting to AWS RDS
+helm repo add external-secrets https://charts.external-secrets.io
+
+# Update ./terraform/secrets-auto-tfvars.example
+# 1. Fill in username and password for the DB master user
+# 2. rename the file to: ./terraform/secrets.auto.tfvars
+# Then continue with the following commands
+
+helm install external-secrets external-secrets/external-secrets \
+  -n external-secrets \
+  --create-namespace
 
 ### Installing web-app Helm Chart
 helm install app ./helm-chart/visit-counter -f ./helm-chart/visit-counter/values-prod.yaml
@@ -51,6 +59,8 @@ aws ssm start-session \
 ### Uninstall
 helm uninstall monitoring --namespace monitoring
 helm uninstall app
+helm uninstall external-secrets --namespace external-secrets
+kubectl delete namespace external-secrets
 
 terraform -chdir=./terraform destroy
 ```

@@ -13,4 +13,5 @@
 
 helm-chart/**/charts/*.tgz
 
+*.tfvars
 .terraform/

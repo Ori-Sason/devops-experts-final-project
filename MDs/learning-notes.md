@@ -282,3 +282,21 @@ End phase commit: []() # FIX - add commit
         --document-name AWS-StartPortForwardingSession \
         --parameters '{"portNumber":["<instance-port>"],"localPortNumber":["<local-port>"]}'
       ```
+  * RDS
+    * In production I chose running PostgreSQL DB on AWS RDS, instead of running DB on a pod, to simulate production environment. AWS requires an RDS DB Subnet Group to cover at least 2 Availability Zones (AZ) for failover readiness. Because the main infrastructure resides in a single AZ, I added a secondary empty subnet (`rds_priv_2`) in a second AZ purely to fulfill this AWS requirement without additional cost.
+
+    * Unlike local environment, I wanted to hide my DB secrets while uploading to GitHub.  
+      When we run `terraform apply`, Terraform adds the secrets in `secrets.auto.tfvars` to the clusters `vars` automatically. In our case, we add `db_username` and `db_password`, as mentioned in [secrets-auto-tfvars.example](/terraform/secrets-auto-tfvars.example) (we have to rename the file and fill in the credentials before running `terraform apply`).  
+
+      Next, we want to upload those secrets to AWS SSM parameter store along with the database name and RDS address, so the Kubernetes cluster will be able to fetch these parameters. We do that in [rds.tf#aws_ssm_parameter.db_credentials](/terraform/rds/rds.tf).  
+
+      Lastly, we need to fetch these parameters in the Kubernetes cluster. To do that I've used an external secret operator by [external-secrets.io](https://external-secrets.io). This component allows adding secrets to Kubernetes cluster from cloud providers or secret management platforms.  
+
+      So, we install the resources on a namespace named `external-secrets`. And then we add 2 more components to our Kubernetes cluster: [ClusterSecretStore](/helm-chart/visit-counter/templates/db-rds/cluster-secret-store.yaml) creates the connection to AWS and [ExternalSecret](/helm-chart/visit-counter/templates/db-rds/external-secret.yaml) fetches the secrets from SSM parameter store.  
+
+      Once we install the Helm Chart, `ExternalSecret` will create a `Secret` component with the parameters we stored on [rds.tf#aws_ssm_parameter.db_credentials](/terraform/rds/rds.tf): `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` and `DB_HOST`.
+    * In Helm Chart, I kept the option to use a Pod running DB inside, instead of AWS RDS.  
+
+      For that, keep the DB enabled in [values-prod.yaml](/helm-chart/visit-counter/values-prod.yaml) and comment out the RDS instance in Terraform code.  
+
+      Worth mentioning that this scenario is supported when we have a single node running the Web App pods. In case there is more than one node, we need to add port `5432` (Postgres port) to Web App Security Group.
