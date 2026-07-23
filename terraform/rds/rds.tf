@@ -13,7 +13,6 @@ resource "aws_db_instance" "devops_experts_rds" {
 
   username                            = var.db_username
   password                            = var.db_password
-  iam_database_authentication_enabled = false # FIX - Default is false; set to true if using IAM Auth
 
   db_subnet_group_name   = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]

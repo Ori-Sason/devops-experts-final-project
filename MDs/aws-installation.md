@@ -3,7 +3,7 @@
 terraform -chdir=./terraform apply
 
 # Copies kubeconfig file from EC2 to local
-aws ssm start-session --target $(aws ec2 describe-instances --filters "Name=tag:Name,Values=devops-experts-k3s-master" "Name=instance-state-name,Values=running" --query "Reservations[0].Instances[0].InstanceId" --output text)$
+aws ssm start-session --target $(aws ec2 describe-instances --filters "Name=tag:Name,Values=devops-experts-k3s-master" "Name=instance-state-name,Values=running" --query "Reservations[0].Instances[0].InstanceId" --output text)
 sudo cat /etc/rancher/k3s/k3s.yaml # in k3 master
 exit
 
