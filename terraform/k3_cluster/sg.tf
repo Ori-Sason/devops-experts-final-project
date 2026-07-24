@@ -109,6 +109,15 @@ resource "aws_vpc_security_group_ingress_rule" "web_worker_vxlan_from_self" {
   ip_protocol                  = "udp"
 }
 
+resource "aws_vpc_security_group_ingress_rule" "web_worker_vxlan_from_monitoring" {
+  description                  = "Flannel VXLAN overlay traffic from Monitoring SG"
+  security_group_id            = aws_security_group.k3s_web_app_sg.id
+  referenced_security_group_id = aws_security_group.k3s_monitoring_sg.id
+  from_port                    = 8472
+  to_port                      = 8472
+  ip_protocol                  = "udp"
+}
+
 resource "aws_vpc_security_group_egress_rule" "web_worker_outbound_all" {
   description       = "Full internet access for updates and pulling container images"
   security_group_id = aws_security_group.k3s_web_app_sg.id
@@ -146,6 +155,15 @@ resource "aws_vpc_security_group_ingress_rule" "monitoring_vxlan_from_master" {
   description                  = "Flannel VXLAN overlay traffic from Master SG"
   security_group_id            = aws_security_group.k3s_monitoring_sg.id
   referenced_security_group_id = aws_security_group.k3s_master_sg.id
+  from_port                    = 8472
+  to_port                      = 8472
+  ip_protocol                  = "udp"
+}
+
+resource "aws_vpc_security_group_ingress_rule" "monitoring_vxlan_from_web_workers" {
+  description                  = "Flannel VXLAN overlay traffic from Web-App workers"
+  security_group_id            = aws_security_group.k3s_monitoring_sg.id
+  referenced_security_group_id = aws_security_group.k3s_web_app_sg.id
   from_port                    = 8472
   to_port                      = 8472
   ip_protocol                  = "udp"
