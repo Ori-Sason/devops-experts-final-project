@@ -275,7 +275,7 @@ pipeline {
 
                                 git switch helm-publish
 
-                                mv /tmp/charts/*.tgz .
+                                mv "/tmp/charts/"*.tgz .
                                 helm repo index . --merge index.yaml
 
                                 git add .
