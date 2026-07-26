@@ -10,6 +10,7 @@
       * Permissions:
         * `Contents` - read and write
         * `Metadata` (automatically added by selecting `Contents`) - read-only
+
       Click on `Generate token` and copy the secret.
 * Store PAT on Jenkins
   * `Manage Jenkins` → `Credentials` → `Add Credentials` → `Username with password`
@@ -17,12 +18,14 @@
     * Password: `<paste PAT here>`
     * ID: github
     * Description: GitHub
+
     Click on *Create*
 * Create **Docker Hub** PAT
   * Personal menu → `Account settings` → `Settings` (sidebar menu) → `Personal access tokens` (sidebar menu) → `Generate new token`
     * Access token description: `jenkins`
     * Expiration date: `30 days` (or your preferred duration)
     * Access permissions: `Read & Write`
+
   Click on `Generate` and copy the secret.
 * Store PAT on Jenkins
   * `Manage Jenkins` → `Credentials` → `Add Credentials` → `Username with password`
@@ -30,6 +33,7 @@
     * Password: `<paste PAT here>`
     * ID: `docker-hub`
     * Description: `Docker Hub`
+
     Click on *Create*
 * Install plugins:
   * Core/Built-in Plugins (typically installed during initial setup):
@@ -52,5 +56,6 @@
       * Credentials - select `GitHub`
       * Branch specifier: `*/main`
     * Script Path: `jenkins/Jenkinsfile`
+
   Click `Save`.
 * On the job dashboard page, click `Build Now` to trigger the initial execution.
