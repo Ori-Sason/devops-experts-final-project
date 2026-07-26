@@ -1,5 +1,6 @@
 import psycopg2
 from psycopg2 import sql
+
 from src.db.init import get_connection, get_cursor
 
 
