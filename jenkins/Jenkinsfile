@@ -141,7 +141,7 @@ pipeline {
 
                 stage('helm-chart: lint') {
                     steps {
-                        dir('helm-chart'){
+                        dir('helm-chart/visit-counter'){
                             echo 'Linting Helm chart...'
                             sh 'helm lint .'
                         }
@@ -190,7 +190,7 @@ pipeline {
                                 # This looks for the 'server:' line and swaps the IP, keeping the original port
                                 # i flag on yq saves the file
                                 PORT=$(echo $ORIGINAL_SERVER | grep -oE '[0-9]+$')
-                                yq -i ".clusters[0].cluster.server = \"https://host.docker.internal:${PORT}\"" ${CI_KUBE}
+                                TARGET_URL="https://host.docker.internal:${PORT}" yq -i '.clusters[0].cluster.server = env(TARGET_URL)' ${CI_KUBE}
                             else
                                 echo "Detected Linux network IP ($ORIGINAL_SERVER)."
                                 echo "Checking if we can reach it directly..."
