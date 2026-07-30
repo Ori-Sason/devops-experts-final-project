@@ -11,6 +11,9 @@
     ```powershell
     $env:DOCKER_GID=0; docker compose -f .\jenkins\docker-compose.yaml up -d
     ```
+
+Access Jenkins UI at http://localhost:8080.
+
 * If this is your first time deploying Jenkins for this project, you must configure the required authentication credentials and create the pipeline job. Follow the step-by-step setup guide in [jenkins-installation.md](./jenkins-installation.md).
 
 ## Explanation
