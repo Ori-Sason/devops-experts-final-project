@@ -176,6 +176,7 @@ pipeline {
                                 KUBECONFIG=${CI_KUBE} helm upgrade app "\${CHART_TGZ}" \
                                     --install \
                                     --rollback-on-failure \
+                                    --timeout 3m \
                                     -f /tmp/values-prod.yaml
                             """
                         }
