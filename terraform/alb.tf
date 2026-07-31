@@ -60,7 +60,10 @@ resource "aws_lb_listener_rule" "jenkins_rule" {
 
   condition {
     path_pattern {
-      values = ["/github-webhooks", "/github-webhooks/*"]
+      values = [
+        "/github-webhook", "/github-webhook/*",
+        "/generic-webhook-trigger", "/generic-webhook-trigger/*",
+      ]
     }
   }
 

@@ -67,7 +67,9 @@ pipeline {
                     }
 
                     environment {
+                        // 1. Force uv to install inside the visible workspace
                         UV_INSTALL_DIR  = "${WORKSPACE}/.uv-bin"
+                        // 2. Add uv-bin and /usr/local/bin (where Helm lives) to the execution PATH
                         PATH = "${WORKSPACE}/.uv-bin:/usr/local/bin:${env.PATH}"
                     }
 
