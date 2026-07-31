@@ -1,9 +1,8 @@
 # Jenkins Notes
 
 This section documents explanations and decision making related Jenkins component.
-I'll describe Dockerfile, `docker-compose.yaml` file and Jenkinsfile pipeline.
-
-To run Jenkins - follow the instructions on [running-jenkins.md](./running-jenkins.md).
+I'll describe Dockerfile, `docker-compose.yaml` file and Jenkinsfile pipeline.  
+In this repository I've implemented  2 ways to install Jenkins: locally and on AWS EC2 instance. There are slight changes between the methods scripts, so I've commented if a note is related to a specific method.
 
 ## Dockerfile
 Built upon 2 stages. At the build stage we download Docker, `kubectl`, Helm CLI binary, `yq` and `gitleaks` packages.  
@@ -17,34 +16,26 @@ At the final stage we copy the binaries of the installations and configure Git u
 Volume & bind mounts:
 * `jenkins_home:/var/jenkins_home` (named volume)  
   Ensures stateful persistence for the Jenkins server. This volume preserves crucial application data - including installed plugins, credentials, pipeline definitions, and build job histories - across container restarts, updates, or removals.
-* `~/.kube:/var/jenkins_home/.kube:ro` (bind mount)  
+* **(Local deployment)** `~/.kube:/var/jenkins_home/.kube:ro` (bind mount)  
   Enables `kubectl` and Helm commands running within Jenkins pipelines to communicate with a Kubernetes cluster. For local development, this mounts the host machine's active Minikube configuration.
   * This is mounted as Read-Only (`:ro`) to prevent the containerized processes from accidentally altering the host's primary configuration. We will need to modify the config file in the pipeline, so first we will copy it and manipulate the copied file using `yq`.
   * In phase 4 we might be asked to deploy Jenkins to AWS. Since I won't have testing environment on AWS, as a quick and easy solution, I'm planning to install Minikube on the EC2 instance running Jenkins. So, it should act the same as running it locally.
-* Minikube PKI certificates (bind mounts):  
+* **(Local deployment)** Minikube PKI certificates (bind mounts):  
   The next three bind mounts (at `~/.minikube`) are the Public Key Infrastructure (PKI) certificates required by the `.kube/config` file to authenticate against the host's Minikube API server.  
   We use these certificates in Jenkins pipeline, at `kubectl config view --flatten --minify`.
 
 `group_add` and `/var/run/docker.sock:/var/run/docker.sock` bind mount are explained in [running-jenkins.md](./running-jenkins.md).
 
-## Jenkinsfile
+## Pull requests job (Jenkinsfile.pr)
 * Overall flow  
   <img src="../images/jenkins-workflow.png" alt="Jenkins workflow" width="600"/>
 
 * Checkout explicitly - while Jenkins pulls the repository implicitly, I preferred pulling it explicitly, so it won't look like magic.
 
 * Gitleaks  
-We use a local `pre-commit` hook to catch secrets before they leave a developer's machine. However, client-side hooks cannot be enforced in a production environment since an employee can easily alter or bypass their local Git hooks. To guarantee security compliance, we run Gitleaks as a mandatory, un-bypassable step inside our Jenkins CI/CD pipeline using the following command:
-  ```bash
-  gitleaks detect --verbose --log-level=debug --redact
-  ```
-  * By default, the `gitleaks detect` command walks the entire Git history of the repository (automatically appending the native `--full-history --all` Git flags under the hood).  
-
-    Normally, scanning the entire history repeatedly is inefficient; pipelines should ideally only scan the delta of the current Pull Request (PR). However, because our Jenkins instance is deployed locally, we cannot receive incoming GitHub Webhook event triggers when a PR is opened or updated. Because Jenkins cannot reliably isolate PR commit boundaries post-merge (we would get `0 commits scanned`), scanning the entire repository history is our most secure fallback option. Given the small scale of this project, the historical scan finishes in milliseconds.
-
-  * Our project contains infrastructure configurations (such as `/helm-chart/visit-counter/templates/db/secret.yaml` and files inside the `/web-app/env/` folder) that contain required test secrets. I've explained that I keep these "secrets" in the code to keep  local learning environment simple [README.MD](/README.md/#running-the-application-locally-using-docker-compose).
-    Gitleaks detects this file by a certain commit, so I've added it to `.gitleaksignore` list.
-  * Other flags used  
+We use a local `pre-commit` hook to catch secrets before they leave a developer's machine. However, client-side hooks cannot be enforced in a production environment since an employee can easily alter or bypass their local Git hooks. To guarantee security compliance, we run Gitleaks as a mandatory, un-bypassable step inside our Jenkins CI/CD pipeline.
+  * Flags used  
+    * `--log-opts=<base commit>..<head commit>` tests only the commits related to the PR to save full history search.
     * `--verbose` / `-v`: overrides the default quiet scan. It prints the full findings and lets you see exactly which line triggered the alert and why.
     * `--log-level=debug`: outputs granular engine traces to the Jenkins console. This exposes rule compilation, decoding attempts, and skipped commits, which is vital for troubleshooting pipeline executions.
     * `--redact` hides the sensitive data in case gitleaks finds it in the code.
@@ -52,14 +43,23 @@ We use a local `pre-commit` hook to catch secrets before they leave a developer'
 * Triggers:
   * `web-app` - handles `web-app` Python application.  
     Triggered when there was a change in `./web-app/` folder  
-    *OR* manually.
   * `helm-chart` - handles Helm Charts.  
     Triggered if the `web-app` stage was triggered and completed successfully  
     *OR* there was a change in `./helm-chart/visit-counter/` folder  
-    *OR* manually.
-  * I've included manual triggers in case a job fails and Jenkins does not detect a new changeset compared to the previous broken build.
-    Also, I could make the job running automatically by using Poll SCM trigger, but I decided not to.
-    I will consider adding a Webhook trigger if I will deploy Jenkins to AWS EC2 instance (maybe on phase 4).
+
+* GitHub Notify
+  * We send a commit status to GitHub to notify that there is a pipeline running. We can see that on the UI
+    <img src="../images/github-webhook-notification-pr.png" alt="GitHub Webhook Notification for PR" width="600"/>
+    * `Continuous integration/jenkins/pr-head` is a notification created automatically by GitHub Notify plugin.
+    * GitGuardian Security Checks are checks running by GitHub as a free service.
+
+    In merge pipeline we will see the notification in the branch it merges to, `main` in our case
+    <img src="../images/github-webhook-notification-merge.png" alt="GitHub Webhook Notification for merge" width="600"/>
+
+    GitHub allows setting 4 statuses: `pending`, `success`, `failure` and `error`. To guarantee that we update the same notification (in case we set multiple notifications), we need to use a similar context name (like `jenkins/pr-validation`).  
+    At the end of the pipeline we set a notification to `success` or `failure`, depends on the pipeline results.
+
+  * In real production environments we should add branch protection rules to prevent merging PRs before tests are running. However, This feature requires GitHub Team or Enterprise organization account.
 
 * `web app` stage
   * Lint & bandit
@@ -71,7 +71,8 @@ We use a local `pre-commit` hook to catch secrets before they leave a developer'
     * `Coverage` is a tool that measures exactly how much of our source code is executed during testing.  
       The industry standard is to throw an error if less than 80%/90% is covered. Since the primary architectural focus of this project is infrastructure automation and CI/CD pipeline design, rather than application logic, the coverage benchmark was intentionally lowered to 75% to allow successful pipeline execution with a minimal test suite.
   * Build & Publish Docker image to Docker Hub  
-    I chose not to handle version management, so as a quick and easy workaround I used the execution date and build number. The date keeps the flows incrementing even if the container, with its volume (`jenkins_home`), is destroyed, while the build number helps us identify the build in case there is an issue and we want to get back to the logs.
+    At this point we need to upload the Docker image to Docker Hub in order to use it in the Helm Chart testing stage.  
+    To make a unique image name for each PR and commit, we use the following name pattern: `pr-<PR number>-<commit SHA>`.
   * Post script  
     `git reset --hard HEAD` - resets the changes. Necessary since we've installed testing packages using `uv`.  
     `git clean -fdx` - removed untracked files.  
@@ -80,7 +81,7 @@ We use a local `pre-commit` hook to catch secrets before they leave a developer'
 
 * `helm-chart` stage
   * `helm lint` is a built-in tool within the standard Helm CLI that examines Kubernetes charts for structural mistakes, syntax errors, and deployment best practices.
-  * Configure `kube` config file  
+  * **(Local deployment)** Configure `kube` config file  
     For testing Helm Charts we need to install the updated Chart on a running K8s cluster. Since at phase 3 we still work locally, I've decided to use the Minikube cluster running on the host machine.  
     * To communicate with it, I've passed `~/.kube/config` file to the container by using bind mount (explained above, under [Docker Compose](#docker-compose) section).  
     * First, I've validated that `kube` config file `current-context` is Minikube cluster. This prevents working on other clusters, like on AWS, in case the host machine is connected to them.
@@ -122,7 +123,8 @@ We use a local `pre-commit` hook to catch secrets before they leave a developer'
     * Ephemeral testing namespace  
       We install the updated Helm chart into a dedicated testing namespace (`${TEST_NS}`). In a production-grade CI/CD architecture, this sandbox cluster typically mirrors core infrastructure components with **minimized** resource limits.  
 
-      The Helm test stage uses `web.image.tag=latest` because the pipeline allows running the Helm stage independently of `web-app` build stage. Since our standard images are tagged dynamically by build date, skipping the build stage means we don't have a unique image tag for the current run. Using `latest` ensures Helm can always pull the most recent image from Docker Hub. This acts as a pragmatic 'quick win' to keep the pipeline decoupled without over-engineering a version-tracking system.
+      In case `web-app` stage was triggered, there is an updated Docker image on Docker Hub. However, if there wasn't a change on `/web-app/` folder, we need to use the `latest` image - once we merge the PR to the `main` branch, the merge job re-tag the Docker image to `latest` (described below).  
+      We set the relevant image in `helm install` command by using the flag: `web.image.tag=<relevant latest image>`.
     * Automated verification  
       We run `helm test`, which spins up a dedicated test runner pod inside that namespace to execute validation scripts against our freshly deployed application components. Once finished, it turns its status to `Completed`.
     * Bulletproof teardown  
@@ -130,11 +132,85 @@ We use a local `pre-commit` hook to catch secrets before they leave a developer'
         * `helm uninstall` removes the chart release tracking history from the cluster.
         * `kubectl delete namespace` nukes the entire testing sandbox. In Kubernetes, deleting a namespace triggers a cascading deletion, meaning the cluster automatically sweeps through and destroys absolutely every resource tied to it - including application pods, configurations, secrets, and the lingering `Completed` test runner pods - all in a single background operation (`--wait=false`)
 
+## Merge job (Jenkinsfile.merge)
+* In PR job we used Jenkins default GitHub webhook plugin. The problem with that plugin is that it's triggered by `pull_request.open` event or `push` event (in our case). In the `push` event we can't get the PR number, which is needed to fetch the latest image pushed to Docker Hub. Therefore, here we use Generic Webhook Trigger plugin.  
+  To configure that it triggers this pipeline, we define it at the `properties` object.
+
+  ```groovy
+    properties([
+        parameters([...]),
+
+        pipelineTriggers([
+            GenericTrigger(
+                genericVariables: [
+                    [key: 'GITHUB_ACTION', value: '$.action'],
+                    [key: 'IS_PR_MERGED', value: '$.pull_request.merged'],
+                    [key: 'PR_NUMBER', value: '$.number'],
+                    [key: 'PR_BASE_SHA', value: '$.pull_request.base.sha'],
+                    [key: 'PR_HEAD_SHA', value: '$.pull_request.head.sha']
+                ],
+                token: 'secret-for-j3nk1ns-plugin', // Token written on GitHub Settings → Webhooks
+                regexpFilterText: '$GITHUB_ACTION $IS_PR_MERGED',
+                regexpFilterExpression: '^(opened|reopened|synchronize) false$|^closed true$'
+            )
+        ])
+    ])
+  ```
+  * We have up to 2 secrets
+    * **(Local deployment)** Ngrok's secret (`this-is-my-G1tHub-little-secret`) is between GitHub and Ngrok (validates request signature)
+    * Jenkins's token (`secret-for-j3nk1ns-plugin`) is between GitHub and Jenkins (identifies which job to trigger)
+  * When we do something related to PR, a POST request will be sent to Jenkins, with JSON payload. As part of this request JSON, we have `action` and `merged` fields. We set their names in the the pipeline to `GITHUB_ACTION` and `IS_PR_MERGED`, respectively.  
+
+    If you want to see the payload sent by GitHub: Github repository → `Settings` → `Webhooks` → select our webhook → `Recent Deliveries` → you should a list of all requests.
+    We didn't create a request yet, so this list should be empty at this point.
+  * Explanation for `regexpFilter`  
+    * I made the example a bit more complicated to understand more complex filters.
+
+    We set a filter based on 2 fields: `$action $is_pr_merged`. That means that there are 2 sections separated by space. Therefore, on `expression` we also need to set a rule based on 2 fields - left one refer to the `GITHUB_ACTION` field and the right one refer to the `IS_PR_MERGED` field.  
+    The first rule is `^(opened|reopened|synchronize) false$` - action is `opened/reopened/synchronize` and merge is `false`. So, when a PR opens.  
+    Now we have pipe (`|`) as an `OR` operator.  
+    Second rule is: `^closed true$` - action is `closed` and `merged` is `true`.
+
+* Checkout
+  * `githubNotify` - in this pipeline we are based on Generic Webhook Trigger plugin which requires specify some properties like GitHub account name and repository, so we parse these details from the job configuration.
+* `web-app` stage
+  * During the PR pipeline we deployed an image to Docker Hub named under the pattern `pr-<PR number>-<commit SHA>`. Since the image is already on Docker Hub, simply update the `latest` image by re-tagging the test image.  
+  If I would have a version management system, I would have add another tag for the current version.
+
+* `helm-chart` stage
   * Deploy & Upgrade Helm
     * Helm Chart is published by using GitHub Pages, which is referenced to a dedicated branch ([helm-publish](https://github.com/Ori-Sason/devops-experts-final-project/tree/helm-publish)).
+    * I chose not to handle version management, so as a quick and easy workaround I used the execution date and build number. The date keeps the flows incrementing even if the container, with its volume (`jenkins_home`), is destroyed, while the build number helps us identify the build in case there is an issue and we want to get back to the logs.
     * Since Jenkins updates the version, I considered committing the changes to the `main` branch as well. However, I've decided not to, since there is no version management system and I wanted to keep things simple.  
     For the same reason I'm publishing Docker images in a dedicated repository on Docker Hub, `orisason1/devops-experts-final-project-jenkins`, and not the main one, `orisason1/devops-experts-final-project`.
     * For downloading or installing the published package - check out dedicated instructions in [README.md](/README.md/#helm-chart).
 
-  * Install on production - placeholder
-    * In a production environment, we would execute `helm install` against the live cluster (or use ArgoCD). For this local phase, that would mean redeploying the changes to the same host Minikube cluster. Since I've already manipulated Minikube cluster from Jenkins for Helm testing, repeating that process felt redundant. So, I've decided just to keep a placeholder.
+  * Install on production
+    * **(AWS deployment)** We find the latest chart name and install it on K3s cluster.
+    * **(Local deployment)** Placeholder - in a production environment, we would execute `helm install` against the live cluster (or use ArgoCD). For local cluster, that would mean redeploying the changes to the same host Minikube cluster. Since I've already manipulated Minikube cluster from Jenkins for Helm testing, repeating that process felt redundant. So, I've decided just to keep a placeholder.
+
+## Troubleshooting
+
+On GitHub delivery page (Github repository → `Settings` → `Webhooks` → select our webhook → `Recent Deliveries` → you should a list of all requests. Select you're request) you can see the request and response. By the response you can find if anything was triggered and what variables were sent  
+```JSON
+{
+  "jobs": {
+    "final-project-merge": {
+      "regexpFilterExpression": "^(opened|reopened|synchronize) false$|^closed true$",
+      "triggered": true,
+      "resolvedVariables": {
+        "action": "opened",
+        "pr_base_sha": "4e53e5fab4671e6380e89801f368668d9d217a6e",
+        "pr_head_sha": "0ec4bb0901f9a57f11e0a70e99a1f424f4b7babd",
+        "pr_merged": "false"
+      },
+      "regexpFilterText": "opened false",
+      "id": 420,
+      "url": "queue/item/420/"
+    }
+  },
+  "message": "Triggered jobs."
+}
+```
+
+**IMPORTANT:**  (related only to **merge** job) When we trigger the pipeline manually, Generic Webhook Trigger plugin can't inject the variables. This means that we can't know the base and head commits (they will have the value `null`). If your merge job failed and you want to re-trigger it, do it from GitHub (and not by pressing Jenkins `Replay` button): Github repository → `Settings` → `Webhooks` → select our webhook → `Recent Deliveries` → select your record → `Redeliver`.
