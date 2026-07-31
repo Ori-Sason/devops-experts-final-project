@@ -11,13 +11,13 @@ web:
     type: NodePort
     nodePort: 32080
 db:
-  enabled: false
+  enabled: true  # FIX
 
 aws:
   parameterStoreRegion: us-east-1
 
 autoscaling:
-  enabled: true
+  enabled: false  # FIX
 
 syntheticTraffic:
   enabled: false
