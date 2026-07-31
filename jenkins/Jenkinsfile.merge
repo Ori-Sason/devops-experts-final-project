@@ -26,7 +26,7 @@ pipeline {
 
     environment {
         WEB_APP_BUILT = 'false'
-        RELEASE_VERSION = "${new java.text.SimpleDateFormat('yyyyMMdd-HHmmss').format(new Date())}-${BUILD_NUMBER}"
+        RELEASE_VERSION = "${new java.text.SimpleDateFormat('yyyyMMddHHmmss').format(new Date())}${String.format('%05d', BUILD_NUMBER.toInteger())}"
         TEST_IMAGE_TAG = "pr-${env.PR_NUMBER}-${env.PR_HEAD_SHA}"
         TMP_CHART_DEST = "/tmp/charts"
     }
