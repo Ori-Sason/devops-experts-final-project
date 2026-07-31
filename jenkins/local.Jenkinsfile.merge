@@ -1,0 +1,203 @@
+// Jenkins job type: pipeline. Triggered on merge by GitHub Webhook Trigger plugin
+
+properties([
+    parameters([
+        string(name: 'DOCKER_HUB_REPO', defaultValue: 'orisason1/devops-experts-final-project-jenkins', description: 'Repository name in Docker Hub', trim: true)
+    ]),
+
+    pipelineTriggers([
+        GenericTrigger(
+            genericVariables: [
+                [key: 'GITHUB_ACTION', value: '$.action'],
+                [key: 'IS_PR_MERGED', value: '$.pull_request.merged'],
+                [key: 'PR_NUMBER', value: '$.number'],
+                [key: 'PR_BASE_SHA', value: '$.pull_request.base.sha'],
+                [key: 'PR_HEAD_SHA', value: '$.pull_request.head.sha']
+            ],
+            token: 'secret-for-j3nk1ns-plugin',
+            regexpFilterText: '$GITHUB_ACTION $IS_PR_MERGED',
+            regexpFilterExpression: '^closed true$'
+        )
+    ])
+])
+
+pipeline {
+    agent any
+
+    environment {
+        WEB_APP_BUILT = 'false'
+        RELEASE_VERSION = "${new java.text.SimpleDateFormat('yyyyMMdd-HHmmss').format(new Date())}-${BUILD_NUMBER}"
+        TEST_IMAGE_TAG = "pr-${env.PR_NUMBER}-${env.PR_HEAD_SHA}"
+        TMP_CHART_DEST = "/tmp/charts"
+    }
+
+    stages {
+
+        stage('checkout') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: scm.branches,
+                    extensions: [
+                        [$class: 'WipeWorkspace'],      // Completely wipes the workspace before cloning
+                        [$class: 'CleanBeforeCheckout'] // Cleans up untracked files/submodules
+                    ],
+                    userRemoteConfigs: scm.userRemoteConfigs
+                ])
+
+                script {
+                    def parts = scm.userRemoteConfigs[0].url
+                        .replaceFirst(/^.*github\.com[:\/]/, '')
+                        .replaceFirst(/\.git$/, '')
+                        .split('/')
+
+                    env.GH_ACCOUNT = parts[0]
+                    env.GH_REPO = parts[1]
+
+                    githubNotify(
+                        account: env.GH_ACCOUNT,
+                        repo: env.GH_REPO,
+                        sha: env.GIT_COMMIT,
+                        credentialsId: scm.userRemoteConfigs[0].credentialsId,
+                        context: 'jenkins/deploy-prod',
+                        status: 'PENDING',
+                        description: 'Deploying to production...'
+                    )
+
+                    env.CHANGED_FILES = sh(
+                        script: "git diff --name-only ${env.PR_BASE_SHA} ${env.PR_HEAD_SHA}",
+                        returnStdout: true
+                    ).trim()
+                }
+            }
+        }
+
+        stage('web-app') {
+            when {
+                anyOf {
+                    expression { env.CHANGED_FILES.split('\n').any { it.startsWith('web-app/') } }
+                }
+            }
+
+            stages {
+                stage('web-app: re-tag') {
+                    steps {
+                        echo 'Building and pushing Docker image...'
+
+                        script {
+                            def pullImageName = "${params.DOCKER_HUB_REPO}:${TEST_IMAGE_TAG}"
+                            def latestImageName = "${params.DOCKER_HUB_REPO}:latest"
+
+                            try {
+                                docker.withRegistry('', 'docker-hub') {
+                                    docker.image(pullImageName).pull()
+                                    sh "docker tag ${pullImageName} ${latestImageName}"
+                                    docker.image(latestImageName).push()
+                                }
+                            } finally {
+                                sh "docker rmi ${pullImageName} || true"
+                                sh "docker rmi ${latestImageName} || true"
+                            }
+                        }
+                    }
+                }
+            }
+
+            post {
+                success {
+                    echo 'web-app stage completed successfully'
+                    script {
+                        WEB_APP_BUILT = 'true'
+                    }
+                }
+            }
+        }
+
+        stage('helm-chart') {
+            when {
+                anyOf {
+                    expression { WEB_APP_BUILT == 'true' }
+                    expression { env.CHANGED_FILES.split('\n').any { it.startsWith('helm-chart/visit-counter/') } }
+                }
+            }
+
+            stages {
+                stage('helm-chart: package and deploy') {
+                    steps {
+                        dir('helm-chart/visit-counter') {
+                            script {
+                                if ( WEB_APP_BUILT == 'true' ) {
+                                    echo "Updating values-prod.yaml with image tag ${TEST_IMAGE_TAG}"
+                                    sh "yq -i '.web.image.tag = \"${TEST_IMAGE_TAG}\"' values-prod.yaml"
+                                }
+
+                                echo "Updating Chart version to ${RELEASE_VERSION}"
+                                sh "yq -i '.version = \"0.1.${RELEASE_VERSION.replace('-', '')}\"' Chart.yaml"
+                            }
+
+                            echo 'Package chart from main branch to a temporary outside folder'
+                            sh "helm package ./ --destination ${TMP_CHART_DEST}"
+                            sh 'git reset --hard HEAD'
+                        }
+
+                        withCredentials([usernamePassword(
+                            credentialsId: scm.userRemoteConfigs[0].credentialsId,
+                            usernameVariable: 'GIT_USER',
+                            passwordVariable: 'GIT_TOKEN'
+                        )]) {
+                            sh """
+                                # wire withCredentials to the remote URL
+                                git remote set-url origin https://\$GIT_USER:\$GIT_TOKEN@${scm.userRemoteConfigs[0].url.replaceFirst('https://', '')}
+
+                                git switch helm-publish
+
+                                mv "${TMP_CHART_DEST}/"*.tgz .
+                                helm repo index . --merge index.yaml
+
+                                git add .
+                                git commit -m "jenkins: automated helm release"
+                                git push origin helm-publish
+                            """
+                        }
+                    }
+                }
+
+                stage('helm-chart: install on production'){
+                    steps {
+                        echo 'Placeholder for installing on production cluster'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            sh "rm -rf ${TMP_CHART_DEST}"
+            echo 'Pipeline complete.'
+        }
+        success {
+            githubNotify(
+                account: env.GH_ACCOUNT,
+                repo: env.GH_REPO,
+                sha: env.GIT_COMMIT,
+                credentialsId: scm.userRemoteConfigs[0].credentialsId,
+                context: 'jenkins/deploy-prod',
+                status: 'SUCCESS',
+                description: 'Deployed to production'
+            )
+        }
+        failure {
+            githubNotify(
+                account: env.GH_ACCOUNT,
+                repo: env.GH_REPO,
+                sha: env.GIT_COMMIT,
+                credentialsId: scm.userRemoteConfigs[0].credentialsId,
+                context: 'jenkins/deploy-prod',
+                status: 'FAILURE',
+                description: 'Deployment failed'
+            )
+            echo 'Pipeline failed.'
+        }
+    }
+}
