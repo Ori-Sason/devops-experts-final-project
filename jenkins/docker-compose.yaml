@@ -8,10 +8,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - jenkins_home:/var/jenkins_home
-      - ~/.kube:/var/jenkins_home/.kube:ro
-      - ~/.minikube/ca.crt:/var/jenkins_home/.minikube/ca.crt:ro
-      - ~/.minikube/profiles/minikube/client.crt:/var/jenkins_home/.minikube/profiles/minikube/client.crt:ro
-      - ~/.minikube/profiles/minikube/client.key:/var/jenkins_home/.minikube/profiles/minikube/client.key:ro
     group_add:
       - "${DOCKER_GID}"
 
