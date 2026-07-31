@@ -1,7 +1,7 @@
 # Support GitHub Webhooks on Jenkins
 A Webhook means that GitHub sends a request to our Jenkins instance, every time an event occurs (in our case, we will select Pull Request (PR)).
 
-* Install `Generic Webhook Trigger Plugin` plugin
+* Install `Generic Webhook Trigger` plugin
   Jenkins → `Manage Jenkins` → `Plugins` → `Available plugins` → search for *Generic Webhook Trigger* → `Install`.
 * Restart Jenkins by running on the host machine
   ```bash
