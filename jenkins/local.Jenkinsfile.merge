@@ -164,21 +164,7 @@ pipeline {
 
                 stage('helm-chart: install on production'){
                     steps {
-                        echo 'Installing on production cluster'
-
-                        withCredentials([file(credentialsId: 'k3s-kubeconfig', variable: 'CI_KUBE')]) {
-                            sh """
-                                CHART_TGZ=\$(ls visit-counter-*.tgz | sort -V | tail -1)
-                                echo "Chart package: \${CHART_TGZ}"
-
-                                tar -xzf "\${CHART_TGZ}" -O visit-counter/values-prod.yaml > /tmp/values-prod.yaml
-
-                                KUBECONFIG=${CI_KUBE} helm upgrade app "\${CHART_TGZ}" \
-                                    --install \
-                                    --rollback-on-failure \
-                                    -f /tmp/values-prod.yaml
-                            """
-                        }
+                        echo 'Placeholder for installing on production cluster'
                     }
                 }
             }

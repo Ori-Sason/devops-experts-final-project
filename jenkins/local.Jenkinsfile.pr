@@ -12,6 +12,7 @@ pipeline {
     environment {
         WEB_APP_BUILT = 'false'
         TEST_IMAGE_TAG = "pr-${env.CHANGE_ID}-${env.GIT_COMMIT}"
+        CI_KUBE = '.kube_ci/config'
         TEST_NS = "test-${TEST_IMAGE_TAG}"
         TEST_HELM_CHART_NAME = "test-${BUILD_NUMBER}"
     }
@@ -165,6 +166,54 @@ pipeline {
                             }
                         }
 
+                        // FIX - remove this step with K3s
+                        stage('helm-chart: configure Kubeconfig') {
+                            steps {
+                                sh '''
+                                    ORIGINAL_CONTEXT=$(KUBECONFIG=/var/jenkins_home/.kube/config kubectl config current-context)
+
+                                    if [ "${ORIGINAL_CONTEXT}" != "minikube" ]; then
+                                        echo "CRITICAL ERROR: Source Kubeconfig is NOT set to 'minikube'! (Found: '${ORIGINAL_CONTEXT}')"
+                                        echo "Aborting immediately to avoid redundant processing or wrong deployment."
+                                        exit 1
+                                    fi
+
+                                    echo "Source context verified as 'minikube'. Proceeding with configuration..."
+
+                                    mkdir -p .kube_ci
+                                    cp /var/jenkins_home/.kube/config ${CI_KUBE}
+
+                                    sed -i -E 's|[^ ]+(\\|/)\\.minikube|/var/jenkins_home/.minikube|g' ${CI_KUBE}
+                                    sed -i 's|\\\\|/|g' ${CI_KUBE}
+
+                                    KUBECONFIG=${CI_KUBE} kubectl config view --flatten --minify > .kube_ci/config-portable
+                                    mv .kube_ci/config-portable ${CI_KUBE}
+
+                                    ORIGINAL_SERVER=$(yq '.clusters[0].cluster.server' ${CI_KUBE})
+
+                                    if echo "$ORIGINAL_SERVER" | grep -qE '(127.0.0.1|localhost)'; then
+                                        echo "Detected Windows/macOS environment (Loopback IP). Using host.docker.internal..."
+                                        PORT=$(echo $ORIGINAL_SERVER | grep -oE '[0-9]+$')
+                                        TARGET_URL="https://host.docker.internal:${PORT}" yq -i '.clusters[0].cluster.server = env(TARGET_URL)' ${CI_KUBE}
+                                    else
+                                        echo "Detected Linux network IP ($ORIGINAL_SERVER)."
+                                        echo "Checking if we can reach it directly..."
+
+                                        if nc -z -w 2 $(echo "$ORIGINAL_SERVER" | sed -E 's|https://||' | cut -d':' -f1) $(echo "$ORIGINAL_SERVER" | grep -oE '[0-9]+$'); then
+                                            echo "Direct connection successful. No translation needed."
+                                        else
+                                            echo "Direct IP unreachable. Attempting Minikube internal DNS resolution..."
+                                            PORT=$(echo $ORIGINAL_SERVER | grep -oE '[0-9]+$')
+                                            TARGET_URL="https://minikube:${PORT}" yq -i '.clusters[0].cluster.server = env(TARGET_URL)' ${CI_KUBE}
+                                        fi
+                                    fi
+
+                                    sed -i '/certificate-authority-data/d' ${CI_KUBE}
+                                    yq -i '.clusters[0].cluster["insecure-skip-tls-verify"] = true' ${CI_KUBE}
+                                '''
+                            }
+                        }
+
                         stage('helm-chart: test') {
                             options {
                                 timeout(time: 5, unit: 'MINUTES')
@@ -177,36 +226,34 @@ pipeline {
                                     testTag = (env.WEB_APP_BUILT == 'true') ? env.TEST_IMAGE_TAG : 'latest'
                                 }
 
-                                withCredentials([file(credentialsId: 'k3s-kubeconfig', variable: 'CI_KUBE')]) {
-                                    sh """
-                                        echo "testTag: ${testTag}"
+                                // FIX - remove KUBECONFIG
+                                sh """
+                                    echo "testTag: ${testTag}"
 
-                                        KUBECONFIG=${CI_KUBE} helm install ${TEST_HELM_CHART_NAME} ./helm-chart/visit-counter \
-                                            -f ./helm-chart/visit-counter/values-test.yaml \
-                                            --namespace ${TEST_NS} \
-                                            --create-namespace \
-                                            --set web.image.repository=${params.DOCKER_HUB_REPO} \
-                                            --set web.image.tag=${testTag} \
-                                            --set currentNamespace=${TEST_NS} \
-                                            --wait \
-                                            --timeout 3m
+                                    KUBECONFIG=${CI_KUBE} helm install ${TEST_HELM_CHART_NAME} ./helm-chart/visit-counter \
+                                        -f ./helm-chart/visit-counter/values-test.yaml \
+                                        --namespace ${TEST_NS} \
+                                        --create-namespace \
+                                        --set web.image.repository=${params.DOCKER_HUB_REPO} \
+                                        --set web.image.tag=${testTag} \
+                                        --set currentNamespace=${TEST_NS} \
+                                        --wait \
+                                        --timeout 3m
 
-                                        KUBECONFIG=${CI_KUBE} helm test ${TEST_HELM_CHART_NAME} \
-                                            --namespace ${TEST_NS} \
-                                            --logs
-                                    """
-                                }
+                                    KUBECONFIG=${CI_KUBE} helm test ${TEST_HELM_CHART_NAME} \
+                                        --namespace ${TEST_NS} \
+                                        --logs
+                                """
                             }
 
                             post {
                                 always {
                                     echo 'Cleaning up environment...'
-                                    withCredentials([file(credentialsId: 'k3s-kubeconfig', variable: 'CI_KUBE')]) {
-                                        sh """
-                                            KUBECONFIG=${CI_KUBE} helm uninstall ${TEST_HELM_CHART_NAME} --namespace ${TEST_NS}
-                                            KUBECONFIG=${CI_KUBE} kubectl delete namespace ${TEST_NS} --wait=false || true
-                                        """
-                                    }
+                                    sh """
+                                        KUBECONFIG=${CI_KUBE} helm uninstall ${TEST_HELM_CHART_NAME} --namespace ${TEST_NS}
+                                        KUBECONFIG=${CI_KUBE} kubectl delete namespace ${TEST_NS} --wait=false || true
+                                        rm -rf .kube_ci
+                                    """
                                 }
                             }
                         }
