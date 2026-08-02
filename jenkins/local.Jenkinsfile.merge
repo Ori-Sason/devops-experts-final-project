@@ -128,6 +128,7 @@ pipeline {
                             script {
                                 if ( WEB_APP_BUILT == 'true' ) {
                                     echo "Updating values-prod.yaml with image tag ${TEST_IMAGE_TAG}"
+                                    sh "yq -i '.web.image.repository = \"${params.DOCKER_HUB_REPO}\"' values-prod.yaml"
                                     sh "yq -i '.web.image.tag = \"${TEST_IMAGE_TAG}\"' values-prod.yaml"
                                 }
 
