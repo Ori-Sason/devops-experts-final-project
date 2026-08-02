@@ -9,7 +9,7 @@ A deep dive into Jenkins pipeline design and execution logic can be found in [je
 * Python/Flask web app: a lightweight application featuring two primary endpoints (`/` and `/visits`).
 * Traffic tracking: the `/visits` route dynamically displays access counts across the application.
 * Persistent Database:
-  * Locally - Utilizes a containerized PostgreSQL database. Data is persisted via Docker named volumes (for local Compose deployments) and Kubernetes `hostPath` volumes (for Minikube deployments).
+  * Locally - utilizes a containerized PostgreSQL database. Data is persisted via Docker named volumes (for local Compose deployments) and Kubernetes `hostPath` volumes (for Minikube deployments).
   * Remote - PostgreSQL database running on AWS RDS.
 * Dockerized: easily containerized for streamlined deployment.
 * Kubernetes orchestration: local cluster deployment managed via Minikube and Helm Charts or remote deployment on AWS via K3s.

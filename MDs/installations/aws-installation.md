@@ -6,6 +6,26 @@
 3. Terraform ([Installation](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli))
 
 ## Running commands
+* Create AWS S3 bucket for Terraform backend
+  * Browse to [AWS S3 page](https://us-east-1.console.aws.amazon.com/s3/home?region=us-east-1#).  
+    Notice that I chose to run my cluster on N. Virginia region (`us-east-1`). If you want to replace the region you'll need to update Terraform code ([backend.tf](/terraform/backend.tf) and [vars.tf](/terraform/vars.tf)) and Helm Chart values ([values-prod.md](/helm-chart/visit-counter/values-prod.yaml)).
+  * Click on `Create bucket`
+    *	Bucket type: General purpose
+    *	Bucket name: `devops-experts-final-project`  
+      In case the bucket name is not available or you want to change it, update [backend.tf](/terraform/backend.tf).
+    *	Object ownership: ACLs disabled
+    *	Block Public Access settings for this bucket: Block all public access (we will change to public after creating the logs bucket)
+    *	Bucket versioning: disable
+    * Tags:
+      * Name: devops-experts-s3
+      * Project: devops-experts-final-project
+
+    Click on `Create bucket`.
+* (Optional) Instead of storing AWS secrets locally on `~/.aws/credentials`, AWS offers short-term tokens by using Browser authentication.  
+    ```bash
+    unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_CREDENTIAL_EXPIRATION
+    aws login # Re-authenticate with the browser
+    eval $(aws configure export-credentials --profile default --format env)
 * Install terraform cluster on AWS
   ```bash
   terraform -chdir=./terraform apply
