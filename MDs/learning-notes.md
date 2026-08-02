@@ -210,10 +210,7 @@ We are requested to create a **Helm Chart** for our Kubernetes application, set 
     Switching the service type to `ClusterIP` for the test environment seamlessly resolves this, as Helm no longer expects an external IP address.  
     If I were deploying this to a live cloud infrastructure provider (like AWS or GCP), an external load balancer IP would be provisioned automatically, and the command would succeed without getting stuck.
 
-## Phase 4 -
-#### FIX - missing title
-
-End phase commit: []() # FIX - add commit
+## Phase 4 - Monitoring, AWS and Ansible
 
 #### FIX - add description of the phase
 
@@ -300,3 +297,23 @@ End phase commit: []() # FIX - add commit
       For that, keep the DB enabled in [values-prod.yaml](/helm-chart/visit-counter/values-prod.yaml) and comment out the RDS instance in Terraform code.  
 
       Worth mentioning that this scenario is supported when we have a single node running the Web App pods. In case there is more than one node, we need to add port `5432` (Postgres port) to Web App Security Group.
+* AWS
+  * To view EC2 provisioning script output:
+    * log he instance using SSH
+      ```bash
+      ssh -i <path to .pem file> ec2-user@<EC2 instance public IP>
+      ```
+      Or AWS SSM session
+      ```bash
+      aws ssm start-session --target <EC2 instance ID>
+      ```
+    * In the instance terminal, run
+      ```bash
+      sudo cat /var/log/cloud-init-output.log
+      ```
+  * To read provisioning script `user_data.txt` (necessary when it was manipulated with by Terraform and you want to debug):
+    * Log the EC2 instance with SSH or AWS SSM session, as described above.
+    * In the instance terminal, run
+      ```bash
+      sudo cat /var/lib/cloud/instance/user-data.txt
+      ```

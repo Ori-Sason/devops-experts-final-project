@@ -11,7 +11,7 @@ web:
     type: NodePort
     nodePort: 32080
 db:
-  enabled: true  # FIXX
+  enabled: true  # FIX
 
 aws:
   parameterStoreRegion: us-east-1
