@@ -1,5 +1,11 @@
 # Jenkins Installation
 
+To run Jenkins on local machine, follow the instructions on [running-jenkins.md](./running-jenkins.md).
+
+Access Jenkins UI at http://localhost:8080.
+
+If this is your first time deploying Jenkins for this project, you must configure the required authentication credentials and create the pipeline job. Follow this step-by-step setup guide:
+
 * Generate **GitHub** Personal Access Token (PAT)
   * Fork my repository
   * Create GitHub PAT

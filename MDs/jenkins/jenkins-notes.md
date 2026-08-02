@@ -26,10 +26,12 @@ Volume & bind mounts:
 
 `group_add` and `/var/run/docker.sock:/var/run/docker.sock` bind mount are explained in [running-jenkins.md](./running-jenkins.md).
 
-## Pull requests job (Jenkinsfile.pr)
-* Overall flow  
+## Jenkinsfiles workflow
+<div align="center">
   <img src="../images/jenkins-workflow.png" alt="Jenkins workflow" width="600"/>
+</div>
 
+## Pull requests job (Jenkinsfile.pr)
 * Checkout explicitly - while Jenkins pulls the repository implicitly, I preferred pulling it explicitly, so it won't look like magic.
 
 * Gitleaks  

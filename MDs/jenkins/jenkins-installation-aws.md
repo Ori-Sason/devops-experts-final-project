@@ -1,5 +1,16 @@
 # Jenkins Installation
 
+After installing the cluster by following [aws-installation.md](../aws-installation.md) guide, you can log Jenkins UI by running
+```bash
+aws ssm start-session --target $(aws ec2 describe-instances --filters "Name=tag:Name,Values=devops-experts-jenkins" "Name=instance-state-name,Values=running" --query "Reservations[0].Instances[0].InstanceId" --output text) --document-name AWS-StartPortForwardingSession --parameters '{"portNumber":["8080"],"localPortNumber":["8080"]}'
+```
+
+And then browse to http://localhost:8080.
+
+* Explanation for running command on [Jenkins EC2 provisioning script](/terraform/jenkins/scripts/ec2_provision.sh) can be found on [running-jenkins.md](./running-jenkins.md).
+
+If this is your first time deploying Jenkins for this project, you must configure the required authentication credentials and create the pipeline job. Follow this step-by-step setup guide:
+
 * Generate **GitHub** Personal Access Token (PAT)
   * Fork my repository
   * Create GitHub PAT

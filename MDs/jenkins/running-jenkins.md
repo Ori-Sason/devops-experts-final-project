@@ -3,18 +3,16 @@
   To run it locally, run `jenkins/docker-compose.yaml` file:
   * On MacOS / Linux:
     ```bash
-    DOCKER_GID=$(stat -f "%g" /var/run/docker.sock) docker compose -f ./jenkins/docker-compose.yaml up -d
+    DOCKER_GID=$(stat -f "%g" /var/run/docker.sock) docker compose -f ./jenkins/local.docker-compose.yaml up -d
     ```
     In Linux, replace `stat -f` with `stat -c`.
   * On Windows (assuming you run Docker on WSL2):  
     Run on PowerShell
     ```powershell
-    $env:DOCKER_GID=0; docker compose -f .\jenkins\docker-compose.yaml up -d
+    $env:DOCKER_GID=0; docker compose -f .\jenkins\local.docker-compose.yaml up -d
     ```
 
 Access Jenkins UI at http://localhost:8080.
-
-* If this is your first time deploying Jenkins for this project, you must configure the required authentication credentials and create the pipeline job. Follow the step-by-step setup guide in [jenkins-installation.md](./jenkins-installation.md).
 
 ## Explanation
 To run a Docker Daemon, Linux requires very deep, low-level kernel privileges (like managing cgroups, iptables firewall rules, and mounting filesystems). Regular containers (like the standard Jenkins container) are locked down and isolated from the host kernel for security. They are physically blocked from starting a Docker Daemon.  
