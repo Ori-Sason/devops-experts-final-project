@@ -1,8 +1,8 @@
 # Jenkins Notes
 
-This section documents explanations and decision making related Jenkins component.
+This section documents explanations and decision-making related to the Jenkins component.
 I'll describe Dockerfile, `docker-compose.yaml` file and Jenkinsfile pipeline.  
-In this repository I've implemented  2 ways to install Jenkins: locally and on AWS EC2 instance. There are slight changes between the methods scripts, so I've commented if a note is related to a specific method.
+In this repository I've implemented  2 ways to install Jenkins: locally and on AWS EC2 instance. There are slight changes between the scripts for each method, so I've commented if a note is related to a specific method.
 
 ## Dockerfile
 Built upon 2 stages. At the build stage we download Docker, `kubectl`, Helm CLI binary, `yq` and `gitleaks` packages.  
@@ -77,7 +77,7 @@ We use a local `pre-commit` hook to catch secrets before they leave a developer'
     To make a unique image name for each PR and commit, we use the following name pattern: `pr-<PR number>-<commit SHA>`.
   * Post script  
     `git reset --hard HEAD` - resets the changes. Necessary since we've installed testing packages using `uv`.  
-    `git clean -fdx` - removed untracked files.  
+    `git clean -fdx` - removes untracked files.  
     Both of these ensure that we are back to the latest commit state.
     Because we dynamically modify `pyproject.toml` at runtime using `uv add` to inject linting tools without bloating our base repository's production dependencies, a strict workspace reset is required post-execution to keep the agent clean.
 
@@ -108,7 +108,10 @@ We use a local `pre-commit` hook to catch secrets before they leave a developer'
 
         However, by default, Minikube on Linux creates a completely isolated network bridge (usually named `minikube`). While our Jenkins container lives on the standard `docker0` network bridge.  
 
-        Because they are on two completely separate virtual network bridges inside Linux, Docker intentionally blocks them from talking to each other for security. Therefore, on the provisioning script [ec2-provision.sh](/jenkins/ec2-provision.sh), we've added our jenkins container to `minikube` network, and now we refer to `minikube` container (referring to a Docker container in the same network).
+        Because they are on two completely separate virtual network bridges inside Linux, Docker intentionally blocks them from talking to each other for security. Therefore, on Linux environments we also need to added our `jenkins` container to `minikube` network. For that, run the following command on the host machine:
+        ```bash
+        sudo -i -u <host username> docker network connect minikube jenkins
+        ```
     * Lastly, we remove `certificate-authority-data` and inject `insecure-skip-tls-verify: true`
       * `certificate-authority-data` is a base64-encoded copy of our cluster’s root certificate (CA).  
         It acts like a digital passport verification. When our client (like `kubectl` or `helm`) talks to the cluster, it uses this certificate data to verify that the server is authentic and not an attacker trying to intercept our traffic.  
@@ -161,9 +164,9 @@ We use a local `pre-commit` hook to catch secrets before they leave a developer'
   * We have up to 2 secrets
     * **(Local deployment)** Ngrok's secret (`this-is-my-G1tHub-little-secret`) is between GitHub and Ngrok (validates request signature).
     * Jenkins's token (`secret-for-j3nk1ns-plugin`) is between GitHub and Jenkins. It is used by Generic Webhook Trigger plugin, for identifying which job to trigger.
-  * When we do something related to PR, a POST request will be sent to Jenkins, with JSON payload. As part of this request JSON, we have `action` and `merged` fields. We set their names in the the pipeline to `GITHUB_ACTION` and `IS_PR_MERGED`, respectively.  
+  * When we do something related to PR, a POST request will be sent to Jenkins, with JSON payload. As part of this request JSON, we have `action` and `merged` fields. We set their names in the pipeline to `GITHUB_ACTION` and `IS_PR_MERGED`, respectively.  
 
-    If you want to see the payload sent by GitHub: Github repository → `Settings` → `Webhooks` → select our webhook → `Recent Deliveries` → you should a list of all requests.
+    If you want to see the payload sent by GitHub: GitHub repository → `Settings` → `Webhooks` → select our webhook → `Recent Deliveries` → you should a list of all requests.
     We didn't create a request yet, so this list should be empty at this point.
   * Explanation for `regexpFilter`  
     * I made the example a bit more complicated to understand more complex filters.
@@ -193,7 +196,7 @@ We use a local `pre-commit` hook to catch secrets before they leave a developer'
 
 ## Troubleshooting
 
-On GitHub delivery page (Github repository → `Settings` → `Webhooks` → select our webhook → `Recent Deliveries` → you should a list of all requests. Select you're request) you can see the request and response. By the response you can find if anything was triggered and what variables were sent  
+On GitHub delivery page (Github repository → `Settings` → `Webhooks` → select our webhook → `Recent Deliveries` → you should a list of all requests. Select your request) you can see the request and response. By the response you can find if anything was triggered and what variables were sent  
 ```JSON
 {
   "jobs": {

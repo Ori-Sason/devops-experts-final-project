@@ -81,6 +81,10 @@ If this is your first time deploying Jenkins for this project, you must configur
       * Script Path: `jenkins/local.Jenkinsfile.merge`
 
       Click `Save`.
+* **On Linux machines** we also need to connect Jenkins Docker container to `minikube` network
+  ```bash
+  sudo -i -u <host username> docker network connect minikube jenkins
+  ```
 * On the job dashboard page, click `Build Now` to trigger the initial execution.
 
 ### Setup GitHub Webhooks
