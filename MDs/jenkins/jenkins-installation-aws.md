@@ -108,7 +108,8 @@ If this is your first time deploying Jenkins for this project, you must configur
 * On the job dashboard page, click `Build Now` to trigger the initial execution.
 
 ### Setup GitHub Webhooks
-A Webhook means that GitHub sends a request to our Jenkins instance, every time an event occurs (in our case, we will select Pull Request (PR)). For that we've installed `Generic Webhook Trigger` plugin.
+A Webhook means that GitHub sends a request to our Jenkins instance, every time an event occurs (in our case, we will select Pull Request (PR)).  
+Jenkins supports GitHub Webhooks by default, but we also use `Generic Webhook Trigger` plugin for the merge pipeline.
 
 * We need to point to our AWS Application Load Balancer (ALB) endpoint.  
   To get the ALB DNS run

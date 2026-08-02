@@ -168,7 +168,6 @@ pipeline {
                             }
                         }
 
-                        // FIX - remove this step with K3s
                         stage('helm-chart: configure Kubeconfig') {
                             steps {
                                 sh '''
@@ -228,7 +227,6 @@ pipeline {
                                     testTag = (env.WEB_APP_BUILT == 'true') ? env.TEST_IMAGE_TAG : 'latest'
                                 }
 
-                                // FIX - remove KUBECONFIG
                                 sh """
                                     echo "testTag: ${testTag}"
 

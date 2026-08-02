@@ -84,7 +84,7 @@ We use a local `pre-commit` hook to catch secrets before they leave a developer'
 * `helm-chart` stage
   * `helm lint` is a built-in tool within the standard Helm CLI that examines Kubernetes charts for structural mistakes, syntax errors, and deployment best practices.
   * **(Local deployment)** Configure `kube` config file  
-    For testing Helm Charts we need to install the updated Chart on a running K8s cluster. Since at phase 3 we still work locally, I've decided to use the Minikube cluster running on the host machine.  
+    For testing Helm Charts we need to install the updated Chart on a running K8s cluster. Since we work locally, I've decided to use the Minikube cluster running on the host machine.  
     * To communicate with it, I've passed `~/.kube/config` file to the container by using bind mount (explained above, under [Docker Compose](#docker-compose) section).  
     * First, I've validated that `kube` config file `current-context` is Minikube cluster. This prevents working on other clusters, like on AWS, in case the host machine is connected to them.
     * We need to make some changes to the config file, so we first make a copy of it (an extra safeguard for making the volume read-only, as explained in [Docker Compose](#docker-compose) section).
@@ -135,7 +135,7 @@ We use a local `pre-commit` hook to catch secrets before they leave a developer'
         * `kubectl delete namespace` nukes the entire testing sandbox. In Kubernetes, deleting a namespace triggers a cascading deletion, meaning the cluster automatically sweeps through and destroys absolutely every resource tied to it - including application pods, configurations, secrets, and the lingering `Completed` test runner pods - all in a single background operation (`--wait=false`)
 
 ## Merge job (Jenkinsfile.merge)
-* In PR job we used Jenkins default GitHub webhook plugin. The problem with that plugin is that it's triggered by `pull_request.open` event or `push` event (in our case). In the `push` event we can't get the PR number, which is needed to fetch the latest image pushed to Docker Hub. Therefore, here we use Generic Webhook Trigger plugin.  
+* In PR job we used Jenkins default GitHub webhook plugin. The problem with that plugin is that it's triggered by `pull_request.open` event or `push` event (in our case). In the `push` event we can't get the PR number, which is needed to fetch the latest image pushed to Docker Hub on the PR pipeline. Therefore, here we use Generic Webhook Trigger plugin.  
   To configure that it triggers this pipeline, we define it at the `properties` object.
 
   ```groovy
@@ -159,8 +159,8 @@ We use a local `pre-commit` hook to catch secrets before they leave a developer'
     ])
   ```
   * We have up to 2 secrets
-    * **(Local deployment)** Ngrok's secret (`this-is-my-G1tHub-little-secret`) is between GitHub and Ngrok (validates request signature)
-    * Jenkins's token (`secret-for-j3nk1ns-plugin`) is between GitHub and Jenkins (identifies which job to trigger)
+    * **(Local deployment)** Ngrok's secret (`this-is-my-G1tHub-little-secret`) is between GitHub and Ngrok (validates request signature).
+    * Jenkins's token (`secret-for-j3nk1ns-plugin`) is between GitHub and Jenkins. It is used by Generic Webhook Trigger plugin, for identifying which job to trigger.
   * When we do something related to PR, a POST request will be sent to Jenkins, with JSON payload. As part of this request JSON, we have `action` and `merged` fields. We set their names in the the pipeline to `GITHUB_ACTION` and `IS_PR_MERGED`, respectively.  
 
     If you want to see the payload sent by GitHub: Github repository → `Settings` → `Webhooks` → select our webhook → `Recent Deliveries` → you should a list of all requests.
