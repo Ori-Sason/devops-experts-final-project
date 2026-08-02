@@ -3,7 +3,17 @@ entries:
   visit-counter:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2026-08-02T11:30:50.841621225Z"
+    created: "2026-08-02T11:41:21.269785255Z"
+    description: A Helm chart for simple visit counter application
+    digest: f629b265528bca71b2c8e7523f823069a6eeec1727a7fdc0272ee9feb43ee562
+    name: visit-counter
+    type: application
+    urls:
+    - visit-counter-0.1.2026080211411100003.tgz
+    version: 0.1.2026080211411100003
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2026-08-02T11:41:21.269311672Z"
     description: A Helm chart for simple visit counter application
     digest: 8f02c3a5c46cc73139bf0f140f51846f624859dca8ca3947eeae9fb47658738d
     name: visit-counter
@@ -13,7 +23,7 @@ entries:
     version: 0.1.2026080211304600002
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2026-08-02T11:30:50.841191381Z"
+    created: "2026-08-02T11:41:21.268930549Z"
     description: A Helm chart for simple visit counter application
     digest: c69afe74f3ac4d5329785eeca0f6bf60f5507c47ddae4ce24d53e60e29432406
     name: visit-counter
@@ -23,7 +33,7 @@ entries:
     version: 0.1.2026073116393200007
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2026-08-02T11:30:50.837607046Z"
+    created: "2026-08-02T11:41:21.266930531Z"
     description: A Helm chart for simple visit counter application
     digest: beedb4f0ea68ae831dd67cd51e6807addfb8459359961e37f136ea2101b2d439
     name: visit-counter
@@ -33,7 +43,7 @@ entries:
     version: 0.1.2026072609432310
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2026-08-02T11:30:50.835197426Z"
+    created: "2026-08-02T11:41:21.265790592Z"
     description: A Helm chart for simple visit counter application
     digest: 6e14ab8ca7df6b19ca843eb7e58bd814ed0176a56dd23ca9f267af0808b88138
     name: visit-counter
@@ -43,7 +53,7 @@ entries:
     version: 0.1.2026060606443259
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2026-08-02T11:30:50.834827089Z"
+    created: "2026-08-02T11:41:21.265428776Z"
     description: A Helm chart for simple visit counter application
     digest: 17fee8c63fdf4bfc763165c08693977545784f76fb4a335e4d2ffc14cbffd7cb
     name: visit-counter
@@ -53,7 +63,7 @@ entries:
     version: 0.1.2026060411065853
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2026-08-02T11:30:50.834420517Z"
+    created: "2026-08-02T11:41:21.26508261Z"
     description: A Helm chart for simple visit counter application
     digest: 137e648c16eea44a7091d1f6df24a9d4daf9a9f57b871db17151fb7c1db1d926
     name: visit-counter
@@ -63,7 +73,7 @@ entries:
     version: 0.1.2026060313511325
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2026-08-02T11:30:50.834036475Z"
+    created: "2026-08-02T11:41:21.264709704Z"
     description: A Helm chart for simple visit counter application
     digest: cd22cf46d0849aa085b6c73f3d02163ad3b6b078127b1d20767e0cc739836249
     name: visit-counter
@@ -73,7 +83,7 @@ entries:
     version: 0.1.2026060311224817
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2026-08-02T11:30:50.83364974Z"
+    created: "2026-08-02T11:41:21.264231778Z"
     description: A Helm chart for simple visit counter application
     digest: 791fef363445445468990791c82d63bd0a2938a40a9354a12e68c4019e88a43c
     name: visit-counter
@@ -83,7 +93,7 @@ entries:
     version: 0.1.2026060310054816
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2026-08-02T11:30:50.833242809Z"
+    created: "2026-08-02T11:41:21.263847322Z"
     description: A Helm chart for simple visit counter application
     digest: 579ca068ed06114c58d7ed43ca9071995960eebef9780f8b0ca5e5109df523c1
     name: visit-counter
@@ -93,7 +103,7 @@ entries:
     version: 0.1.2026060219303611
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2026-08-02T11:30:50.840786411Z"
+    created: "2026-08-02T11:41:21.268460378Z"
     description: A Helm chart for simple visit counter application
     digest: cfaab68cdc78b4a6bbf982de859a0ab7ba8e6bb1d99d8e8767edc949eff8d0cd
     name: visit-counter
@@ -103,7 +113,7 @@ entries:
     version: 0.1.202607311620075
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2026-08-02T11:30:50.840170124Z"
+    created: "2026-08-02T11:41:21.268073454Z"
     description: A Helm chart for simple visit counter application
     digest: 56811a42ac952792b61148df301f384561a93be5080a926369a106facafa2e15
     name: visit-counter
@@ -113,7 +123,7 @@ entries:
     version: 0.1.202607311613543
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2026-08-02T11:30:50.839771188Z"
+    created: "2026-08-02T11:41:21.267710269Z"
     description: A Helm chart for simple visit counter application
     digest: eaf1df6d2bc1c9538265d0befefa0f6a6e9edd2d3c9addedc0fc0a24b4d60642
     name: visit-counter
@@ -123,7 +133,7 @@ entries:
     version: 0.1.202607311602062
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2026-08-02T11:30:50.839213349Z"
+    created: "2026-08-02T11:41:21.26730314Z"
     description: A Helm chart for simple visit counter application
     digest: 82e4aa58ad4a3c3d1f28ccfb5fc6fbd1827dfc5e656157c716bfadbe7549de05
     name: visit-counter
@@ -133,7 +143,7 @@ entries:
     version: 0.1.202607301430313
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2026-08-02T11:30:50.83600971Z"
+    created: "2026-08-02T11:41:21.26649231Z"
     description: A Helm chart for simple visit counter application
     digest: cf192a20210c73e25cc93fea7a5d2705f8b6b9946eaa8f2deb46f8406d312de9
     name: visit-counter
@@ -143,7 +153,7 @@ entries:
     version: 0.1.202606080853529
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2026-08-02T11:30:50.835626548Z"
+    created: "2026-08-02T11:41:21.266151553Z"
     description: A Helm chart for simple visit counter application
     digest: 9f271572b4d6d84b96cc9a6fd79ca26d0322a2f631fd7fdc2e6082feb8041a77
     name: visit-counter
@@ -153,7 +163,7 @@ entries:
     version: 0.1.202606070833232
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2026-08-02T11:30:50.832889122Z"
+    created: "2026-08-02T11:41:21.263363379Z"
     description: A Helm chart for simple visit counter application
     digest: d7971b6e510111748552d2eaee2e056cc1575a2a435615a2e94c68a290cb0d2b
     name: visit-counter
@@ -161,4 +171,4 @@ entries:
     urls:
     - visit-counter-0.1.0.tgz
     version: 0.1.0
-generated: "2026-08-02T11:30:50.832265254Z"
+generated: "2026-08-02T11:41:21.261825657Z"
