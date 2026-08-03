@@ -19,6 +19,10 @@ variable "devops_experts_nat_id" {
   type = string
 }
 
+variable "account_id" {
+  type = string
+}
+
 variable "alb_sg_id" {
   type = string
 }

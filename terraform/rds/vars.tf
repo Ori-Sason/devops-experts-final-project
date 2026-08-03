@@ -15,6 +15,10 @@ variable "devops_experts_vpc_id" {
   type = string
 }
 
+variable "account_id" {
+  type = string
+}
+
 variable "db_username" {
   type      = string
   sensitive = true

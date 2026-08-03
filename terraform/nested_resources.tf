@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 module "jenkins" {
   source = "./jenkins"
 
@@ -17,6 +19,7 @@ module "k3_cluster" {
   ubuntu_ami_id                       = var.ubuntu_ami_id
   devops_experts_vpc_id               = aws_vpc.devops_experts_vpc.id
   devops_experts_nat_id               = aws_nat_gateway.nat_gw.id
+  account_id                          = data.aws_caller_identity.current.account_id
   alb_sg_id                           = aws_security_group.alb_sg.id
   web_app_node_port                   = var.web_app_node_port
   jenkins_sg_id                       = module.jenkins.jenkins_sg_id
@@ -30,6 +33,7 @@ module "rds" {
   zone1                   = var.zone1
   zone2                   = var.zone2
   devops_experts_vpc_id   = aws_vpc.devops_experts_vpc.id
+  account_id              = data.aws_caller_identity.current.account_id
   db_username             = var.db_username
   db_password             = var.db_password
   k3s_web_app_nodes_sg_id = module.k3_cluster.k3s_web_app_nodes_sg_id
