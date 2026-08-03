@@ -61,7 +61,7 @@
     helm install external-secrets external-secrets/external-secrets \
         -n external-secrets \
         --create-namespace \
-        --set nodeSelector."node-role\.kubernetes\.io/master"=true
+        --set-string nodeSelector."node-role\.kubernetes\.io/control-plane"=true
     ```
 * Installing `web-app` Helm Chart
   ```bash
@@ -98,6 +98,14 @@
     ```
 
   Now you can browse to http://localhost:3000 to see Grafana UI.
+
+  * You will be asked to enter username and password
+    * Username: `admin`
+    * Password: run the following command and copy the password
+      ```bash
+      kubectl get secret --namespace monitoring monitoring-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+      ```
+
 * To install Jenkins, follow the instructions on [jenkins-installation-aws.md](/MDs/jenkins/jenkins-installation-aws.md).
 
 ## Uninstall

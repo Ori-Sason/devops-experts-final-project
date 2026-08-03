@@ -234,8 +234,8 @@ We are requested to create a **Helm Chart** for our Kubernetes application, set 
       * `access: proxy` directs Grafana to route queries through its own server backend rather than from the user's browser.
       * `isDefault: true` immediately query this data source without needing manual adjustments in the UI.
     * Creating the dashboard automatically is done by enabling `dashboards` in `values.yaml` file, and ConfigMap [grafana-dashboard-configmap.yaml](/helm-chart/monitoring/templates/grafana-dashboard-configmap.yaml).  
-      We import a dashboard JSON file to the ConfigMap instead of installing it from the internet. Few reasons for that:
-      1. We make sure that we use exactly the same dashboard over time (in case a revision is updated).
+      I import a dashboard JSON file to the ConfigMap instead of installing it from the internet. Few reasons for that:
+      1. By that, I make sure that we use exactly the same dashboard over time (in case a revision is updated).
       2. I had some errors downloading a dashboard automatically, and I've found that using a manual dashboard is more reliable.
       3. I've noticed that some of the panels weren't working on the published dashboard and I had to manipulate the file (more on that on `update-dashboard-json` script explanation).
     * labels `grafana_datasource: '1'` and `grafana_dashboard: '1'`  
@@ -292,7 +292,7 @@ We are requested to create a **Helm Chart** for our Kubernetes application, set 
 
       Lastly, we need to fetch these parameters in the Kubernetes cluster. To do that I've used an external secret operator by [external-secrets.io](https://external-secrets.io). This component allows adding secrets to Kubernetes cluster from cloud providers or secret management platforms.  
 
-      So, we install the resources on a namespace named `external-secrets`. On the installation command we pin the controller pod to the master node, by `--set nodeSelector."node-role\.kubernetes\.io/master"=true`. We pin the controller pod to the master node, since we set that only the K3s master node's IAM role has permission to read that SSM parameter (see [rds/iam.tf](/terraform/rds/iam.tf)).
+      So, we install the resources on a namespace named `external-secrets`. On the installation command we pin the controller pod to the master node, by `--set-string nodeSelector."node-role\.kubernetes\.io/control-plane"=true`. We pin the controller pod to the master node, since we set that only the K3s master node's IAM role has permission to read that SSM parameter (see [rds/iam.tf](/terraform/rds/iam.tf)).
 
       Then we add 2 more components to our Kubernetes cluster: [ClusterSecretStore](/helm-chart/visit-counter/templates/db-rds/cluster-secret-store.yaml) creates the connection to AWS and [ExternalSecret](/helm-chart/visit-counter/templates/db-rds/external-secret.yaml) fetches the secrets from SSM parameter store.  
 
