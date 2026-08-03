@@ -262,6 +262,9 @@ We are requested to create a **Helm Chart** for our Kubernetes application, set 
   * K3s Cluster
     * I chose K3s over Minikube to enable running the cluster across multiple EC2 instances. Only the `web-app` nodes are exposed to the Application Load Balancer (ALB), while the Monitoring and Control Plane nodes remain isolated from the internet.
     * Because K3s does not natively scale nodes automatically, node scaling is managed via an AWS Auto Scaling Group (ASG). While managed alternatives like AWS EKS or kOps handle node scaling out of the box, I opted for this self-managed K3s approach to keep costs minimal.
+  * The ALB listener serves HTTP only, not HTTPS — adding TLS would require a domain name and an ACM certificate, which I intentionally left out of scope here.
+  * Instances security, IMDSv2 and hop limit  
+    IMDSv2 requires a session token to fetch instance credentials from `169.254.169.254`, protecting against SSRF-based credential theft. This address is a link-local address AWS reserves for the Instance Metadata Service (IMDS) — among other things, it's where an instance retrieves the temporary credentials for its attached IAM role. That token request has a hop limit (`http_put_response_hop_limit`) — by default we allow only `1` hop. But since ESO's pod (described below) needs to reach IMDS from its own network namespace, we allow `2` hops on the master node (pod → host network namespace, host → IMDS).
   * Jenkins Security
     * Jenkins runs within an isolated private subnet due to its high privilege levels. I configured Security Groups to block all communication from the K3s nodes to the Jenkins instance. To add an extra layer of defense-in-depth, Network Access Control Lists (NACLs) could also be implemented to completely block traffic between the K3s private subnet and the Jenkins private subnet.
   * Session Manager

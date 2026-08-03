@@ -7,6 +7,11 @@ resource "aws_launch_template" "web_app_worker_template" {
     name = aws_iam_instance_profile.k3s_worker_profile.name
   }
 
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
+
   network_interfaces {
     associate_public_ip_address = false
     security_groups             = [aws_security_group.k3s_web_app_sg.id]

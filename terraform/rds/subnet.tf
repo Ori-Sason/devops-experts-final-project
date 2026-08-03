@@ -43,7 +43,7 @@ resource "aws_route_table_association" "devops_experts_rds_priv_sub_2" {
 }
 
 resource "aws_db_subnet_group" "rds_subnet_group" {
-  name       = "devops-experts-rds-subnet-group"
+  name = "devops-experts-rds-subnet-group"
   subnet_ids = [
     aws_subnet.rds_priv_1.id,
     aws_subnet.rds_priv_2.id

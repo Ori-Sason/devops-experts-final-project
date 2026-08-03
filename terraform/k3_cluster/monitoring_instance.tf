@@ -5,6 +5,11 @@ resource "aws_instance" "k3s_monitoring" {
   iam_instance_profile   = aws_iam_instance_profile.k3s_worker_profile.name
   vpc_security_group_ids = [aws_security_group.k3s_monitoring_sg.id]
 
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
+
   user_data = templatefile("${path.module}/scripts/worker_provision.sh", {
     aws_region      = var.region,
     node_role_label = "monitoring"
