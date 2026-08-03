@@ -2,6 +2,7 @@ resource "aws_ebs_volume" "jenkins_docker_data" {
   availability_zone = aws_subnet.jenkins_priv.availability_zone
   size              = 20
   type              = "gp3"
+  encrypted         = true
 
   tags = {
     Name = "devops-experts-jenkins-docker-storage"
