@@ -22,6 +22,6 @@ resource "aws_vpc_security_group_egress_rule" "jenkins_sg_outbound_allow_all" {
 }
 
 output "jenkins_sg_id" {
-  description = "Jenkins SG ID - used in k3_cluster SG"
+  description = "Jenkins SG ID - used in k3s_cluster SG"
   value       = aws_security_group.jenkins_sg.id
 }

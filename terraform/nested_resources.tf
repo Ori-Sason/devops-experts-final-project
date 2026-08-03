@@ -11,8 +11,8 @@ module "jenkins" {
   alb_sg_id             = aws_security_group.alb_sg.id
 }
 
-module "k3_cluster" {
-  source = "./k3_cluster"
+module "k3s_cluster" {
+  source = "./k3s_cluster"
 
   region                              = var.region
   zone1                               = var.zone1
@@ -36,5 +36,5 @@ module "rds" {
   account_id              = data.aws_caller_identity.current.account_id
   db_username             = var.db_username
   db_password             = var.db_password
-  k3s_web_app_nodes_sg_id = module.k3_cluster.k3s_web_app_nodes_sg_id
+  k3s_web_app_nodes_sg_id = module.k3s_cluster.k3s_web_app_nodes_sg_id
 }
