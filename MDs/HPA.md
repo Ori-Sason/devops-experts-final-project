@@ -1,5 +1,13 @@
 # Kubernetes Horizontal Pod Autoscaler (HPA)
 
+
+**Note:** This project supports two environments: local (Minikube) and remote (AWS, via K3s). Minikube requires enabling the `metrics-server` add-on manually (see below).  
+K3s ships with a built-in metrics-server, enabled by default — verify it's running with:
+```bash
+kubectl get deployment metrics-server -n kube-system
+```
+---
+<br>
 I've followed the walkthrough in K8s documentation
 [HorizontalPodAutoscaler Walkthrough](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/)
 
