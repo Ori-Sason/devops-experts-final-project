@@ -60,7 +60,8 @@
     ```bash
     helm install external-secrets external-secrets/external-secrets \
         -n external-secrets \
-        --create-namespace
+        --create-namespace \
+        --set nodeSelector."node-role\.kubernetes\.io/master"=true
     ```
 * Installing `web-app` Helm Chart
   ```bash

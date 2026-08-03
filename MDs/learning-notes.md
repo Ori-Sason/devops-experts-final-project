@@ -289,7 +289,9 @@ We are requested to create a **Helm Chart** for our Kubernetes application, set 
 
       Lastly, we need to fetch these parameters in the Kubernetes cluster. To do that I've used an external secret operator by [external-secrets.io](https://external-secrets.io). This component allows adding secrets to Kubernetes cluster from cloud providers or secret management platforms.  
 
-      So, we install the resources on a namespace named `external-secrets`. And then we add 2 more components to our Kubernetes cluster: [ClusterSecretStore](/helm-chart/visit-counter/templates/db-rds/cluster-secret-store.yaml) creates the connection to AWS and [ExternalSecret](/helm-chart/visit-counter/templates/db-rds/external-secret.yaml) fetches the secrets from SSM parameter store.  
+      So, we install the resources on a namespace named `external-secrets`. On the installation command we pin the controller pod to the master node, by `--set nodeSelector."node-role\.kubernetes\.io/master"=true`. We pin the controller pod to the master node, since we set that only the K3s master node's IAM role has permission to read that SSM parameter (see [rds/iam.tf](/terraform/rds/iam.tf)).
+
+      Then we add 2 more components to our Kubernetes cluster: [ClusterSecretStore](/helm-chart/visit-counter/templates/db-rds/cluster-secret-store.yaml) creates the connection to AWS and [ExternalSecret](/helm-chart/visit-counter/templates/db-rds/external-secret.yaml) fetches the secrets from SSM parameter store.  
 
       Once we install the Helm Chart, `ExternalSecret` will create a `Secret` component with the parameters we stored on [rds.tf#aws_ssm_parameter.db_credentials](/terraform/rds/rds.tf): `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` and `DB_HOST`.
     * In Helm Chart, I kept the option to use a Pod running DB inside, instead of AWS RDS.  
