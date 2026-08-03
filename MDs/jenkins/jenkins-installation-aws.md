@@ -139,7 +139,7 @@ Jenkins supports GitHub Webhooks by default, but we also use `Generic Webhook Tr
 
      Click on `Add webhook`.  
   2. Hook for PR - using jenkins default endpoint
-     * Payload URL: `http://<ALB DNS>/generic-webhook/`  
+     * Payload URL: `http://<ALB DNS>/github-webhook/`  
        *(Notice that here I used a different secret. Explanation on [jenkins-notes.md](./jenkins-notes.md))*
      * Content type: `application/json`
      * Secret: keep empty
