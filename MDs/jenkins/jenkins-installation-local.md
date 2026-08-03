@@ -135,7 +135,7 @@ Jenkins supports GitHub Webhooks by default, but we also use `Generic Webhook Tr
 
      Click on `Add webhook`.
   2. Hook for PR - using jenkins default endpoint
-     * Payload URL: `<Public IP OR Personal Ngrok URL>/generic-webhook/`  
+     * Payload URL: `<Public IP OR Personal Ngrok URL>/github-webhook/`  
        *(Notice that here I used a different secret. Explanation on [jenkins-notes.md](./jenkins-notes.md))*
      * Content type: `application/json`
      * Secret: `this-is-my-G1tHub-little-secret` *(that's the secret we wrote on Ngrok traffic policy file)*

@@ -7,6 +7,11 @@ resource "aws_launch_template" "web_app_worker_template" {
     name = aws_iam_instance_profile.k3s_worker_profile.name
   }
 
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
+
   network_interfaces {
     associate_public_ip_address = false
     security_groups             = [aws_security_group.k3s_web_app_sg.id]
@@ -43,4 +48,20 @@ resource "aws_autoscaling_group" "web_app_worker_asg" {
   depends_on = [
     aws_route_table_association.devops_experts_k3s_priv_sub
   ]
+}
+
+resource "aws_autoscaling_policy" "web_app_cpu_policy" {
+  name                      = "devops-experts-web-app-cpu-target-tracking"
+  autoscaling_group_name    = aws_autoscaling_group.web_app_worker_asg.name
+  policy_type               = "TargetTrackingScaling"
+  estimated_instance_warmup = 180
+
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ASGAverageCPUUtilization"
+    }
+
+    target_value = 70.0 # Target 70% CPU usage across the ASG
+    disable_scale_in = true # Didn't add support in K3s cluster, yet
+  }
 }

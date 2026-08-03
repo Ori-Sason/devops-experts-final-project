@@ -37,7 +37,7 @@ resource "aws_iam_policy" "k3s_master_policy" {
       {
         Effect   = "Allow"
         Action   = ["ssm:PutParameter"]
-        Resource = "arn:aws:ssm:*:*:parameter/k3s/cluster-token"
+        Resource = "arn:aws:ssm:${var.region}:${var.account_id}:parameter/k3s/cluster-token"
       }
     ]
   })
@@ -88,7 +88,7 @@ resource "aws_iam_policy" "k3s_worker_policy" {
       {
         Effect   = "Allow"
         Action   = ["ssm:GetParameter"]
-        Resource = "arn:aws:ssm:*:*:parameter/k3s/cluster-token"
+        Resource = "arn:aws:ssm:${var.region}:${var.account_id}:parameter/k3s/cluster-token"
       },
       {
         Effect   = "Allow"

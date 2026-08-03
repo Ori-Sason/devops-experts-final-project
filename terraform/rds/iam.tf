@@ -12,7 +12,7 @@ resource "aws_iam_policy" "ssm_read_policy" {
           "ssm:GetParameters",
           "ssm:GetParameterHistory"
         ]
-        Resource = "arn:aws:ssm:${var.region}:${data.aws_caller_identity.current.account_id}:parameter/devops-experts-final-project/*"
+        Resource = "arn:aws:ssm:${var.region}:${var.account_id}:parameter/devops-experts-final-project/*"
       },
       {
         Effect   = "Allow"
@@ -22,8 +22,6 @@ resource "aws_iam_policy" "ssm_read_policy" {
     ]
   })
 }
-
-data "aws_caller_identity" "current" {}
 
 output "ssm_read_for_rds_secrets_policy_arn" {
   description = "SSM read policy ARN - used in k3_master_role"

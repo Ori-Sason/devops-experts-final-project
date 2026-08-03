@@ -45,7 +45,7 @@ resource "aws_lb_listener" "alb_listener_80" {
 
   default_action {
     type             = "forward"
-    target_group_arn = module.k3_cluster.web_app_target_group_arn
+    target_group_arn = module.k3s_cluster.web_app_target_group_arn
   }
 }
 
@@ -78,7 +78,7 @@ resource "aws_lb_listener_rule" "k3s_rule" {
 
   action {
     type             = "forward"
-    target_group_arn = module.k3_cluster.web_app_target_group_arn
+    target_group_arn = module.k3s_cluster.web_app_target_group_arn
   }
 
   condition {

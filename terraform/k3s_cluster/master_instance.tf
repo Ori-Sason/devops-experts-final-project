@@ -5,6 +5,12 @@ resource "aws_instance" "k3s_master" {
   iam_instance_profile   = aws_iam_instance_profile.k3s_master_profile.name
   vpc_security_group_ids = [aws_security_group.k3s_master_sg.id]
 
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 2 # Allows ESO pods/containers to reach IMDS
+  }
+
   user_data = templatefile("${path.module}/scripts/master_provision.sh", {
     aws_region = var.region
   })

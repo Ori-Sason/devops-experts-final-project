@@ -11,8 +11,8 @@ resource "aws_db_instance" "devops_experts_rds" {
   identifier = "devops-experts-db"
   db_name    = "devops_final_project_prod"
 
-  username                            = var.db_username
-  password                            = var.db_password
+  username = var.db_username
+  password = var.db_password
 
   db_subnet_group_name   = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
