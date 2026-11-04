@@ -3,7 +3,7 @@
 This is the final project for the DevOps Experts program. I update it regularly during the course to include the new technologies and layers we study in each phase.
 
 I've noted my technical decisions and learning process in [learning-notes.md](./MDs/learning-notes.md).  
-A deep dive into Jenkins pipeline design and execution logic can be found in [jenkins-notes.md](./MDs/jenkins-notes.md).
+A deep dive into Jenkins pipeline design and execution logic can be found in [jenkins-notes.md](./MDs/jenkins/jenkins-notes.md).
 
 ## Features
 * Python/Flask web app: a lightweight application featuring two primary endpoints (`/` and `/visits`).
@@ -19,6 +19,7 @@ A deep dive into Jenkins pipeline design and execution logic can be found in [je
 * Helm Chart is published on GitHub Pages.
 * CI/CD automation: A fully declarative Jenkins pipeline automatically tests, builds, and publishes both the web application Docker image and the Helm Chart (hosted on GitHub Pages). Pipeline is triggered by GitHub Webhooks.
 * Infrastructure as Code (IaC) by Terraform. Deploying on AWS.
+* Secrets management: on AWS, database credentials live in SSM Parameter Store and are synced into the cluster by the External Secrets Operator. No credentials in Git.
 
 ## Web App
 <div align="center">
@@ -29,7 +30,7 @@ A deep dive into Jenkins pipeline design and execution logic can be found in [je
 ```
 helm-chart
 ├───monitoring          # Prometheus and Grafana
-├───visit-count         # Web app application K8s code
+├───visit-counter       # Web app application K8s code
 jenkins
 MDs                     # Architectural notes and documentation
 terraform               # IaC deployment on AWS

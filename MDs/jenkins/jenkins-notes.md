@@ -188,7 +188,7 @@ We use a local `pre-commit` hook to catch secrets before they leave a developer'
     * I chose not to handle version management, so as a quick and easy workaround I used the execution date and build number. The date keeps the flows incrementing even if the container, with its volume (`jenkins_home`), is destroyed, while the build number helps us identify the build in case there is an issue and we want to get back to the logs.
     * Since Jenkins updates the version, I considered committing the changes to the `main` branch as well. However, I've decided not to, since there is no version management system and I wanted to keep things simple.  
     For the same reason I'm publishing Docker images in a dedicated repository on Docker Hub, `orisason1/devops-experts-final-project-jenkins`, and not the main one, `orisason1/devops-experts-final-project`.
-    * For downloading or installing the published package - check out dedicated instructions in [README.md](/README.md/#helm-chart).
+    * For downloading or installing the published package - check out dedicated instructions in [README.md](/README.md#helm-chart).
 
   * Install on production
     * **(AWS deployment)** We find the latest chart name and install it on K3s cluster.

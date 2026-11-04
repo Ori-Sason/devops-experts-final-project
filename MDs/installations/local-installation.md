@@ -73,4 +73,4 @@ kubectl delete ns monitoring
 ```
 
 ## Running Jenkins
-To run Jenkins container, follow the instructions in [jenkins-installation-local.md](./MDs/jenkins/jenkins-installation-local.md).  
+To run Jenkins container, follow the instructions in [jenkins-installation-local.md](/MDs/jenkins/jenkins-installation-local.md).  

@@ -1,6 +1,6 @@
 # Jenkins installation on AWS EC2 instance
 
-Before following the instructions here, make sure to run the resources on AWS by following the instructions on  [aws-installation.md](../aws-installation.md) guide.  
+Before following the instructions here, make sure to run the resources on AWS by following the instructions on  [aws-installation.md](/MDs/installations/aws-installation.md) guide.  
 After that, you can log Jenkins UI by running
 ```bash
 aws ssm start-session --target $(aws ec2 describe-instances --filters "Name=tag:Name,Values=devops-experts-jenkins" "Name=instance-state-name,Values=running" --query "Reservations[0].Instances[0].InstanceId" --output text) --document-name AWS-StartPortForwardingSession --parameters '{"portNumber":["8080"],"localPortNumber":["8080"]}'
